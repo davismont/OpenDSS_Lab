@@ -2302,7 +2302,7 @@ double CapacitorsF(int mode, double arg)
 	return result;
 }
 //*******************************String type properties***************************
-const char* CapacitorsS(int mode, const char* arg)
+char* CapacitorsS(int mode, char* arg)
 {
 	TCapacitorObj*	elem = nullptr;
 	int				ActiveSave = 0;
@@ -19412,7 +19412,7 @@ void OpenDSS(int Function, uintptr_t* Pointer, int* Type, int* Size)
 		OpenDSS_PackDouble(CapacitorsF(mode, OpenDSS_UnpackDouble(Pointer)), Pointer, Type, Size);
 		break;
 	case fnCapacitorsS:
-		// OpenDSS_PackAndFreeString(CapacitorsS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		OpenDSS_PackAndFreeString(CapacitorsS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
 		break;
 	case fnCapacitorsV:
 		CapacitorsV(mode, Pointer, Type, Size);

@@ -62,7 +62,7 @@ extern "C" {
 
 	DSS_DLL int CapacitorsI(int mode, int arg);
 	DSS_DLL double CapacitorsF(int mode, double arg);
-	DSS_DLL const char* CapacitorsS(int mode, const char* arg);
+	DSS_DLL char* CapacitorsS(int mode, char* arg);
 	DSS_DLL void CapacitorsV(int mode, uintptr_t* myPtr, int* myType, int* mySize);
 
 	//**************************************************************************************************
