@@ -317,6 +317,198 @@ extern "C" {
 	DSS_DLL char* DSSProperties(int mode, char* arg);
 
 	//**************************************************************************************************
+	// Unified interface
+	//
+	// A single entry point that multiplexes every interface function declared above.
+	//
+	// Function = FunctionBase * 1000 + mode
+	//   FunctionBase selects which of the interface functions above gets called (see
+	//   TOpenDSSFunctionBase below); mode is passed straight through as the "mode" argument
+	//   of that function. Entries that don't take a "mode" (e.g. DSSPut_Command, ErrorCode,
+	//   GetPCInjCurr) ignore it, so Function == FunctionBase * 1000 for those.
+	//
+	// Pointer/Type/Size is an in/out triple, following exactly the convention already used
+	// by the *V() functions (see WindGensV for reference):
+	//   - On entry, *Pointer must hold the address of a buffer holding whatever argument the
+	//     selected function expects: one int, one double, two doubles, a null-terminated
+	//     string, or is unused (functions with no argument still expect a valid *Pointer,
+	//     its contents are simply ignored). *Type/*Size describe that incoming buffer using
+	//     the same codes documented for the *V() functions:
+	//       0 - Boolean, 1 - Integer, 2 - double, 3 - Complex (array of doubles), 4 - String
+	//   - On return, OpenDSS() overwrites *Pointer/*Type/*Size to describe the outgoing
+	//     result using that same convention (functions returning void report Size = 0).
+	//   - For FunctionBase values ending in "V" (fnDSSV, fnLinesV, ...), Pointer/Type/Size
+	//     are simply forwarded to the underlying *V() function unchanged.
+	//
+	// Excluded from this dispatcher: InitAndGetYparams, GetCompressedYMatrix, SolveSystem,
+	// getIpointer, getVpointer. Their arguments are raw handles/pointer-to-pointer outputs
+	// (e.g. multiple simultaneous array pointers) that don't fit the single (Type, Size)
+	// value description above, so they remain direct exports only.
+	enum TOpenDSSFunctionBase
+	{
+		fnDSSI = 0,
+		fnDSSS = 1,
+		fnDSSV = 2,
+		fnLinesI = 3,
+		fnLinesF = 4,
+		fnLinesS = 5,
+		fnLinesV = 6,
+		fnDSSPutCommand = 7,
+		fnDSSLoadsI = 8,
+		fnDSSLoadsF = 9,
+		fnDSSLoadsS = 10,
+		fnDSSLoadsV = 11,
+		fnCapacitorsI = 12,
+		fnCapacitorsF = 13,
+		fnCapacitorsS = 14,
+		fnCapacitorsV = 15,
+		fnActiveClassI = 16,
+		fnActiveClassS = 17,
+		fnActiveClassV = 18,
+		fnBUSI = 19,
+		fnBUSF = 20,
+		fnBUSS = 21,
+		fnBUSV = 22,
+		fnCapControlsI = 23,
+		fnCapControlsF = 24,
+		fnCapControlsS = 25,
+		fnCapControlsV = 26,
+		fnCircuitI = 27,
+		fnCircuitF = 28,			// takes two doubles (arg1, arg2)
+		fnCircuitS = 29,
+		fnCircuitV = 30,
+		fnCktElementI = 31,
+		fnCktElementF = 32,
+		fnCktElementS = 33,
+		fnCktElementV = 34,
+		fnCmathLibF = 35,			// takes two doubles (arg1, arg2)
+		fnCmathLibV = 36,
+		fnGeneratorsI = 37,
+		fnGeneratorsF = 38,
+		fnGeneratorsS = 39,
+		fnGeneratorsV = 40,
+		fnDSSElementI = 41,
+		fnDSSElementS = 42,
+		fnDSSElementV = 43,
+		fnDSSProgressI = 44,
+		fnDSSProgressS = 45,
+		fnDSSExecutiveI = 46,
+		fnDSSExecutiveS = 47,
+		fnErrorCode = 48,
+		fnErrorDesc = 49,
+		fnFusesI = 50,
+		fnFusesF = 51,
+		fnFusesS = 52,
+		fnFusesV = 53,
+		fnGICSourcesI = 54,
+		fnGICSourcesF = 55,
+		fnGICSourcesS = 56,
+		fnGICSourcesV = 57,
+		fnIsourceI = 58,
+		fnIsourceF = 59,
+		fnIsourceS = 60,
+		fnIsourceV = 61,
+		fnLineCodesI = 62,
+		fnLineCodesF = 63,
+		fnLineCodesS = 64,
+		fnLineCodesV = 65,
+		fnLoadShapeI = 66,
+		fnLoadShapeF = 67,
+		fnLoadShapeS = 68,
+		fnLoadShapeV = 69,
+		fnMetersI = 70,
+		fnMetersF = 71,
+		fnMetersS = 72,
+		fnMetersV = 73,
+		fnMonitorsI = 74,
+		fnMonitorsS = 75,
+		fnMonitorsV = 76,
+		fnParallelI = 77,
+		fnParallelV = 78,
+		fnParserI = 79,
+		fnParserF = 80,
+		fnParserS = 81,
+		fnParserV = 82,
+		fnPDElementsI = 83,
+		fnPDElementsF = 84,
+		fnPDElementsS = 85,
+		fnPVsystemsI = 86,
+		fnPVsystemsF = 87,
+		fnPVsystemsS = 88,
+		fnPVsystemsV = 89,
+		fnReactorsI = 90,
+		fnReactorsF = 91,
+		fnReactorsS = 92,
+		fnReactorsV = 93,
+		fnReclosersI = 94,
+		fnReclosersF = 95,
+		fnReclosersS = 96,
+		fnReclosersV = 97,
+		fnReduceCktI = 98,
+		fnReduceCktF = 99,
+		fnReduceCktS = 100,
+		fnRegControlsI = 101,
+		fnRegControlsF = 102,
+		fnRegControlsS = 103,
+		fnRegControlsV = 104,
+		fnRelaysI = 105,
+		fnRelaysS = 106,
+		fnRelaysV = 107,
+		fnSensorsI = 108,
+		fnSensorsF = 109,
+		fnSensorsS = 110,
+		fnSensorsV = 111,
+		fnSettingsI = 112,
+		fnSettingsF = 113,
+		fnSettingsS = 114,
+		fnSettingsV = 115,
+		fnSolutionI = 116,
+		fnSolutionF = 117,
+		fnSolutionS = 118,
+		fnSolutionV = 119,
+		fnStoragesI = 120,
+		fnStoragesF = 121,
+		fnStoragesS = 122,
+		fnStoragesV = 123,
+		fnSwtControlsI = 124,
+		fnSwtControlsF = 125,
+		fnSwtControlsS = 126,
+		fnSwtControlsV = 127,
+		fnTopologyI = 128,
+		fnTopologyS = 129,
+		fnTopologyV = 130,
+		fnTransformersI = 131,
+		fnTransformersF = 132,
+		fnTransformersS = 133,
+		fnTransformersV = 134,
+		fnVsourcesI = 135,
+		fnVsourcesF = 136,
+		fnVsourcesS = 137,
+		fnVsourcesV = 138,
+		fnWindGensI = 139,
+		fnWindGensF = 140,
+		fnWindGensS = 141,
+		fnWindGensV = 142,
+		fnXYCurvesI = 143,
+		fnXYCurvesF = 144,
+		fnXYCurvesS = 145,
+		fnXYCurvesV = 146,
+		fnCtrlQueueI = 147,
+		fnCtrlQueueV = 148,
+		fnDSSProperties = 149,
+		fnSystemYChanged = 150,
+		fnUseAuxCurrents = 151,
+		fnAddInAuxCurrents = 152,	// takes one int (SType), no mode
+		fnBuildYMatrixD = 153,		// takes two ints (BuildOps, AllocateVI), no mode
+		fnGetPCInjCurr = 154,		// no argument, no mode
+		fnGetSourceInjCurrents = 155,	// no argument, no mode
+		fnZeroInjCurr = 156,		// no argument, no mode
+		fnDSSDisposeString = 157	// takes the string pointer to dispose, no mode
+	};
+
+	DSS_DLL void OpenDSS(int Function, uintptr_t* Pointer, int* Type, int* Size);
+
+	//**************************************************************************************************
 
 	DSS_DLL int InitAndGetYparams(uintptr_t* hY, unsignedint* nBus, unsignedint* nNZ);
 	DSS_DLL void GetCompressedYMatrix(uintptr_t hY, unsignedint nBus, unsignedint nNz, int** ColPtr, int** RowIdx, complex** cVals);

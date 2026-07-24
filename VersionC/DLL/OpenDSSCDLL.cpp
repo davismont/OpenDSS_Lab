@@ -157,6 +157,7 @@
 #include "CmdForms.h"
 #include "myCmdUtils.h"
 #include "myCmdUtils.cpp"
+#include <Windows.h>
 
 #ifdef OPENDSSC_CPP_EXTRA_HEADER
 // Include another file from a parent project.
@@ -299,7 +300,7 @@ int TMyApplication::GetOptionIdx(string myCMD) // Executes command or detects sp
 string TMyApplication::WriteLicensing() // returns the license agreement
 {
 	string result = "0";
-	result = ("Copyright (c) 2008-2023, Electric Power Research Institute, Inc."
+	result = ("Copyright (c) 2008-2026, Electric Power Research Institute, Inc."
 		+ CRLF + "All rights reserved."
 		+ CRLF + ""
 		+ CRLF + "Redistribution and use in source and binary forms, with or without"
@@ -405,8 +406,10 @@ int DSSI(int mode, int arg)
 
 		break;
 	case    3:                                  // DSS.Start
-		Application.DoRun();
-		result = 1;
+		{
+			Application.DoRun();
+			result = 1;
+		}
 		break;
 	case    4:                                  // DSS.NumClasses
 		result = NumIntrinsicClasses;
@@ -572,7 +575,6 @@ char* DSSPut_Command(char* myCmd)
     string StElm	= "";
     
     myCmds.clear();
-    
     while (!(EvalChar == 0))
     {
         EvalChar = myCmd[charidx];
@@ -586,10 +588,9 @@ char* DSSPut_Command(char* myCmd)
         charidx++;
     }
     myCmds.push_back(StElm);
-
     for (int i = 0; i < myCmds.size(); i++)
     {
-        DSSReply = Application.Execute(myCmds[i].c_str());
+		DSSReply = Application.Execute(myCmds[i].c_str());
         if (!(DSSReply.empty()))
 			result = result + DSSReply + char(0x0A);
     }
@@ -19280,6 +19281,577 @@ void DSSDisposeString(char* value)
 	if (value != nullptr)
 	{
 		delete[] value;
+	}
+}
+
+//--------------------------------------------------------------------------------
+// Unified interface (OpenDSS) - helpers
+//--------------------------------------------------------------------------------
+// Reads back the buffer address the caller placed at *Pointer and reinterprets it
+// as the argument type the target function expects. See the "Unified interface"
+// comment in OpenDSSCDLL.h for the calling convention.
+static int OpenDSS_UnpackInt(uintptr_t* Pointer, int idx = 0)
+{
+	return ((int*)(*Pointer))[idx];
+}
+
+static double OpenDSS_UnpackDouble(uintptr_t* Pointer, int idx = 0)
+{
+	return ((double*)(*Pointer))[idx];
+}
+
+char* OpenDSS_UnpackString(uintptr_t* Pointer)
+{
+	int j = 0;
+	string S = "";
+
+	S = BArray2Str(Pointer, &j);
+	char* startic_ptr = strdup(S.c_str());
+	return startic_ptr;
+}
+
+// Packs a scalar result into the shared global buffers (the same myIntArray /
+// myDblArray / myStrArray used by the *V() functions) and points Pointer/Type/Size
+// at it, mirroring how e.g. WindGensV publishes its results.
+static void OpenDSS_PackInt(int value, uintptr_t* Pointer, int* Type, int* Size)
+{
+	myIntArray.resize(1);
+	myIntArray[0] = value;
+	*Type = 1;		// Integer
+	*Pointer = (uintptr_t)(void*)&(myIntArray[0]);
+	*Size = sizeof(int);
+}
+
+static void OpenDSS_PackDouble(double value, uintptr_t* Pointer, int* Type, int* Size)
+{
+	myDblArray.resize(1);
+	myDblArray[0] = value;
+	*Type = 2;		// double
+	*Pointer = (uintptr_t)(void*)&(myDblArray[0]);
+	*Size = sizeof(double);
+}
+
+static void OpenDSS_PackString(String value, uintptr_t* Pointer, int* Type, int* Size)
+{
+	myStrArray.resize(0);
+	WriteStr2Array(value);
+	WriteStr2Array(Char0());
+	*Type = 4;		// String
+	*Pointer = (uintptr_t)(void*)&(myStrArray[0]);
+	*Size = myStrArray.size();
+}
+
+// The *S() functions all hand back a heap buffer allocated with `new char[]`
+// (see e.g. DSSS, CapacitorsS, ErrorDesc); copy it into myStrArray, then free it.
+static void OpenDSS_PackAndFreeString(char* value, uintptr_t* Pointer, int* Type, int* Size)
+{
+	string new_val(value);
+	OpenDSS_PackString(new_val, Pointer, Type, Size);
+	// delete[] value;
+}
+
+// Used by void functions: nothing to hand back.
+static void OpenDSS_PackNone(int* Type, int* Size)
+{
+	*Type = 1;
+	*Size = 0;
+}
+
+//--------------------------------------------------------------------------------
+// Implements the Unified (OpenDSS) interface for the DLL
+//--------------------------------------------------------------------------------
+void OpenDSS(int Function, uintptr_t* Pointer, int* Type, int* Size)
+{
+	int Base = Function / 1000;
+	int mode = Function % 1000;
+
+	switch (Base)
+	{
+	case fnDSSI:
+		OpenDSS_PackInt(DSSI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnDSSS:
+		OpenDSS_PackAndFreeString(DSSS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnDSSV:
+		DSSV(mode, Pointer, Type, Size);
+		break;
+	case fnLinesI:
+		OpenDSS_PackInt(LinesI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnLinesF:
+		OpenDSS_PackDouble(LinesF(mode, OpenDSS_UnpackDouble(Pointer)), Pointer, Type, Size);
+		break;
+	case fnLinesS:
+		OpenDSS_PackAndFreeString(LinesS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnLinesV:
+		LinesV(mode, Pointer, Type, Size);
+		break;
+	case fnDSSPutCommand:
+		{
+		OpenDSS_PackAndFreeString(DSSPut_Command(OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		}
+		break;
+	case fnDSSLoadsI:
+		OpenDSS_PackInt(DSSLoads(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnDSSLoadsF:
+		OpenDSS_PackDouble(DSSLoadsF(mode, OpenDSS_UnpackDouble(Pointer)), Pointer, Type, Size);
+		break;
+	case fnDSSLoadsS:
+		OpenDSS_PackAndFreeString(DSSLoadsS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnDSSLoadsV:
+		DSSLoadsV(mode, Pointer, Type, Size);
+		break;
+	case fnCapacitorsI:
+		OpenDSS_PackInt(CapacitorsI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnCapacitorsF:
+		OpenDSS_PackDouble(CapacitorsF(mode, OpenDSS_UnpackDouble(Pointer)), Pointer, Type, Size);
+		break;
+	case fnCapacitorsS:
+		// OpenDSS_PackAndFreeString(CapacitorsS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnCapacitorsV:
+		CapacitorsV(mode, Pointer, Type, Size);
+		break;
+	case fnActiveClassI:
+		OpenDSS_PackInt(ActiveClassI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnActiveClassS:
+		OpenDSS_PackAndFreeString(ActiveClassS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnActiveClassV:
+		ActiveClassV(mode, Pointer, Type, Size);
+		break;
+	case fnBUSI:
+		OpenDSS_PackInt(BUSI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnBUSF:
+		OpenDSS_PackDouble(BUSF(mode, OpenDSS_UnpackDouble(Pointer)), Pointer, Type, Size);
+		break;
+	case fnBUSS:
+		OpenDSS_PackAndFreeString(BUSS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnBUSV:
+		BUSV(mode, Pointer, Type, Size);
+		break;
+	case fnCapControlsI:
+		OpenDSS_PackInt(CapControlsI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnCapControlsF:
+		OpenDSS_PackDouble(CapControlsF(mode, OpenDSS_UnpackDouble(Pointer)), Pointer, Type, Size);
+		break;
+	case fnCapControlsS:
+		OpenDSS_PackAndFreeString(CapControlsS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnCapControlsV:
+		CapControlsV(mode, Pointer, Type, Size);
+		break;
+	case fnCircuitI:
+		OpenDSS_PackInt(CircuitI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnCircuitF:
+		OpenDSS_PackDouble(CircuitF(mode, OpenDSS_UnpackDouble(Pointer, 0), OpenDSS_UnpackDouble(Pointer, 1)), Pointer, Type, Size);
+		break;
+	case fnCircuitS:
+		OpenDSS_PackAndFreeString(CircuitS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnCircuitV:
+		CircuitV(mode, Pointer, Type, Size);
+		break;
+	case fnCktElementI:
+		OpenDSS_PackInt(CktElementI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnCktElementF:
+		OpenDSS_PackDouble(CktElementF(mode, OpenDSS_UnpackDouble(Pointer)), Pointer, Type, Size);
+		break;
+	case fnCktElementS:
+		OpenDSS_PackAndFreeString(CktElementS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnCktElementV:
+		CktElementV(mode, Pointer, Type, Size);
+		break;
+	case fnCmathLibF:
+		OpenDSS_PackDouble(CmathLibF(mode, OpenDSS_UnpackDouble(Pointer, 0), OpenDSS_UnpackDouble(Pointer, 1)), Pointer, Type, Size);
+		break;
+	case fnCmathLibV:
+		CmathLibV(mode, Pointer, Type, Size);
+		break;
+	case fnGeneratorsI:
+		OpenDSS_PackInt(GeneratorsI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnGeneratorsF:
+		OpenDSS_PackDouble(GeneratorsF(mode, OpenDSS_UnpackDouble(Pointer)), Pointer, Type, Size);
+		break;
+	case fnGeneratorsS:
+		OpenDSS_PackAndFreeString(GeneratorsS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnGeneratorsV:
+		GeneratorsV(mode, Pointer, Type, Size);
+		break;
+	case fnDSSElementI:
+		OpenDSS_PackInt(DSSElementI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnDSSElementS:
+		OpenDSS_PackAndFreeString(DSSElementS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnDSSElementV:
+		DSSElementV(mode, Pointer, Type, Size);
+		break;
+	case fnDSSProgressI:
+		OpenDSS_PackInt(DSSProgressI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnDSSProgressS:
+		OpenDSS_PackAndFreeString(DSSProgressS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnDSSExecutiveI:
+		OpenDSS_PackInt(DSSExecutiveI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnDSSExecutiveS:
+		OpenDSS_PackAndFreeString(DSSExecutiveS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnErrorCode:
+		OpenDSS_PackInt(ErrorCode(), Pointer, Type, Size);
+		break;
+	case fnErrorDesc:
+		OpenDSS_PackAndFreeString(ErrorDesc(), Pointer, Type, Size);
+		break;
+	case fnFusesI:
+		OpenDSS_PackInt(FusesI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnFusesF:
+		OpenDSS_PackDouble(FusesF(mode, OpenDSS_UnpackDouble(Pointer)), Pointer, Type, Size);
+		break;
+	case fnFusesS:
+		OpenDSS_PackAndFreeString(FusesS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnFusesV:
+		FusesV(mode, Pointer, Type, Size);
+		break;
+	case fnGICSourcesI:
+		OpenDSS_PackInt(GICSourcesI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnGICSourcesF:
+		OpenDSS_PackDouble(GICSourcesF(mode, OpenDSS_UnpackDouble(Pointer)), Pointer, Type, Size);
+		break;
+	case fnGICSourcesS:
+		OpenDSS_PackAndFreeString(GICSourcesS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnGICSourcesV:
+		GICSourcesV(mode, Pointer, Type, Size);
+		break;
+	case fnIsourceI:
+		OpenDSS_PackInt(IsourceI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnIsourceF:
+		OpenDSS_PackDouble(IsourceF(mode, OpenDSS_UnpackDouble(Pointer)), Pointer, Type, Size);
+		break;
+	case fnIsourceS:
+		OpenDSS_PackAndFreeString(IsourceS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnIsourceV:
+		IsourceV(mode, Pointer, Type, Size);
+		break;
+	case fnLineCodesI:
+		OpenDSS_PackInt(LineCodesI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnLineCodesF:
+		OpenDSS_PackDouble(LineCodesF(mode, OpenDSS_UnpackDouble(Pointer)), Pointer, Type, Size);
+		break;
+	case fnLineCodesS:
+		OpenDSS_PackAndFreeString(LineCodesS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnLineCodesV:
+		LineCodesV(mode, Pointer, Type, Size);
+		break;
+	case fnLoadShapeI:
+		OpenDSS_PackInt(LoadShapeI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnLoadShapeF:
+		OpenDSS_PackDouble(LoadShapeF(mode, OpenDSS_UnpackDouble(Pointer)), Pointer, Type, Size);
+		break;
+	case fnLoadShapeS:
+		OpenDSS_PackAndFreeString(LoadShapeS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnLoadShapeV:
+		LoadShapeV(mode, Pointer, Type, Size);
+		break;
+	case fnMetersI:
+		OpenDSS_PackInt(MetersI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnMetersF:
+		OpenDSS_PackDouble(MetersF(mode, OpenDSS_UnpackDouble(Pointer)), Pointer, Type, Size);
+		break;
+	case fnMetersS:
+		OpenDSS_PackAndFreeString(MetersS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnMetersV:
+		MetersV(mode, Pointer, Type, Size);
+		break;
+	case fnMonitorsI:
+		OpenDSS_PackInt(MonitorsI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnMonitorsS:
+		OpenDSS_PackAndFreeString(MonitorsS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnMonitorsV:
+		MonitorsV(mode, Pointer, Type, Size);
+		break;
+	case fnParallelI:
+		OpenDSS_PackInt(ParallelI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnParallelV:
+		ParallelV(mode, Pointer, Type, Size);
+		break;
+	case fnParserI:
+		OpenDSS_PackInt(ParserI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnParserF:
+		OpenDSS_PackDouble(ParserF(mode, OpenDSS_UnpackDouble(Pointer)), Pointer, Type, Size);
+		break;
+	case fnParserS:
+		OpenDSS_PackAndFreeString(ParserS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnParserV:
+		ParserV(mode, Pointer, Type, Size);
+		break;
+	case fnPDElementsI:
+		OpenDSS_PackInt(PDElementsI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnPDElementsF:
+		OpenDSS_PackDouble(PDElementsF(mode, OpenDSS_UnpackDouble(Pointer)), Pointer, Type, Size);
+		break;
+	case fnPDElementsS:
+		OpenDSS_PackAndFreeString(PDElementsS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnPVsystemsI:
+		OpenDSS_PackInt(PVsystemsI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnPVsystemsF:
+		OpenDSS_PackDouble(PVsystemsF(mode, OpenDSS_UnpackDouble(Pointer)), Pointer, Type, Size);
+		break;
+	case fnPVsystemsS:
+		OpenDSS_PackAndFreeString(PVsystemsS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnPVsystemsV:
+		PVsystemsV(mode, Pointer, Type, Size);
+		break;
+	case fnReactorsI:
+		OpenDSS_PackInt(ReactorsI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnReactorsF:
+		OpenDSS_PackDouble(ReactorsF(mode, OpenDSS_UnpackDouble(Pointer)), Pointer, Type, Size);
+		break;
+	case fnReactorsS:
+		OpenDSS_PackAndFreeString(ReactorsS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnReactorsV:
+		ReactorsV(mode, Pointer, Type, Size);
+		break;
+	case fnReclosersI:
+		OpenDSS_PackInt(ReclosersI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnReclosersF:
+		OpenDSS_PackDouble(ReclosersF(mode, OpenDSS_UnpackDouble(Pointer)), Pointer, Type, Size);
+		break;
+	case fnReclosersS:
+		OpenDSS_PackAndFreeString(ReclosersS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnReclosersV:
+		ReclosersV(mode, Pointer, Type, Size);
+		break;
+	case fnReduceCktI:
+		OpenDSS_PackInt(ReduceCktI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnReduceCktF:
+		OpenDSS_PackDouble(ReduceCktF(mode, OpenDSS_UnpackDouble(Pointer)), Pointer, Type, Size);
+		break;
+	case fnReduceCktS:
+		OpenDSS_PackAndFreeString(ReduceCktS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnRegControlsI:
+		OpenDSS_PackInt(RegControlsI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnRegControlsF:
+		OpenDSS_PackDouble(RegControlsF(mode, OpenDSS_UnpackDouble(Pointer)), Pointer, Type, Size);
+		break;
+	case fnRegControlsS:
+		OpenDSS_PackAndFreeString(RegControlsS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnRegControlsV:
+		RegControlsV(mode, Pointer, Type, Size);
+		break;
+	case fnRelaysI:
+		OpenDSS_PackInt(RelaysI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnRelaysS:
+		OpenDSS_PackAndFreeString(RelaysS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnRelaysV:
+		RelaysV(mode, Pointer, Type, Size);
+		break;
+	case fnSensorsI:
+		OpenDSS_PackInt(SensorsI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnSensorsF:
+		OpenDSS_PackDouble(SensorsF(mode, OpenDSS_UnpackDouble(Pointer)), Pointer, Type, Size);
+		break;
+	case fnSensorsS:
+		OpenDSS_PackAndFreeString(SensorsS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnSensorsV:
+		SensorsV(mode, Pointer, Type, Size);
+		break;
+	case fnSettingsI:
+		OpenDSS_PackInt(SettingsI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnSettingsF:
+		OpenDSS_PackDouble(SettingsF(mode, OpenDSS_UnpackDouble(Pointer)), Pointer, Type, Size);
+		break;
+	case fnSettingsS:
+		OpenDSS_PackAndFreeString(SettingsS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnSettingsV:
+		SettingsV(mode, Pointer, Type, Size);
+		break;
+	case fnSolutionI:
+		OpenDSS_PackInt(SolutionI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnSolutionF:
+		OpenDSS_PackDouble(SolutionF(mode, OpenDSS_UnpackDouble(Pointer)), Pointer, Type, Size);
+		break;
+	case fnSolutionS:
+		OpenDSS_PackAndFreeString(SolutionS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnSolutionV:
+		SolutionV(mode, Pointer, Type, Size);
+		break;
+	case fnStoragesI:
+		OpenDSS_PackInt(StoragesI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnStoragesF:
+		OpenDSS_PackDouble(StoragesF(mode, OpenDSS_UnpackDouble(Pointer)), Pointer, Type, Size);
+		break;
+	case fnStoragesS:
+		OpenDSS_PackAndFreeString(StoragesS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnStoragesV:
+		StoragesV(mode, Pointer, Type, Size);
+		break;
+	case fnSwtControlsI:
+		OpenDSS_PackInt(SwtControlsI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnSwtControlsF:
+		OpenDSS_PackDouble(SwtControlsF(mode, OpenDSS_UnpackDouble(Pointer)), Pointer, Type, Size);
+		break;
+	case fnSwtControlsS:
+		OpenDSS_PackAndFreeString(SwtControlsS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnSwtControlsV:
+		SwtControlsV(mode, Pointer, Type, Size);
+		break;
+	case fnTopologyI:
+		OpenDSS_PackInt(TopologyI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnTopologyS:
+		OpenDSS_PackAndFreeString(TopologyS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnTopologyV:
+		TopologyV(mode, Pointer, Type, Size);
+		break;
+	case fnTransformersI:
+		OpenDSS_PackInt(TransformersI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnTransformersF:
+		OpenDSS_PackDouble(TransformersF(mode, OpenDSS_UnpackDouble(Pointer)), Pointer, Type, Size);
+		break;
+	case fnTransformersS:
+		OpenDSS_PackAndFreeString(TransformersS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnTransformersV:
+		TransformersV(mode, Pointer, Type, Size);
+		break;
+	case fnVsourcesI:
+		OpenDSS_PackInt(VsourcesI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnVsourcesF:
+		OpenDSS_PackDouble(VsourcesF(mode, OpenDSS_UnpackDouble(Pointer)), Pointer, Type, Size);
+		break;
+	case fnVsourcesS:
+		OpenDSS_PackAndFreeString(VsourcesS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnVsourcesV:
+		VsourcesV(mode, Pointer, Type, Size);
+		break;
+	case fnWindGensI:
+		OpenDSS_PackInt(WindGensI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnWindGensF:
+		OpenDSS_PackDouble(WindGensF(mode, OpenDSS_UnpackDouble(Pointer)), Pointer, Type, Size);
+		break;
+	case fnWindGensS:
+		OpenDSS_PackAndFreeString(WindGensS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnWindGensV:
+		WindGensV(mode, Pointer, Type, Size);
+		break;
+	case fnXYCurvesI:
+		OpenDSS_PackInt(XYCurvesI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnXYCurvesF:
+		OpenDSS_PackDouble(XYCurvesF(mode, OpenDSS_UnpackDouble(Pointer)), Pointer, Type, Size);
+		break;
+	case fnXYCurvesS:
+		OpenDSS_PackAndFreeString(XYCurvesS(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnXYCurvesV:
+		XYCurvesV(mode, Pointer, Type, Size);
+		break;
+	case fnCtrlQueueI:
+		OpenDSS_PackInt(CtrlQueueI(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnCtrlQueueV:
+		CtrlQueueV(mode, Pointer, Type, Size);
+		break;
+	case fnDSSProperties:
+		OpenDSS_PackAndFreeString(DSSProperties(mode, OpenDSS_UnpackString(Pointer)), Pointer, Type, Size);
+		break;
+	case fnSystemYChanged:
+		OpenDSS_PackInt(SystemYChanged(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnUseAuxCurrents:
+		OpenDSS_PackInt(UseAuxCurrents(mode, OpenDSS_UnpackInt(Pointer)), Pointer, Type, Size);
+		break;
+	case fnAddInAuxCurrents:
+		AddInAuxCurrents(OpenDSS_UnpackInt(Pointer));
+		OpenDSS_PackNone(Type, Size);
+		break;
+	case fnBuildYMatrixD:
+		BuildYMatrixD(OpenDSS_UnpackInt(Pointer, 0), OpenDSS_UnpackInt(Pointer, 1));
+		OpenDSS_PackNone(Type, Size);
+		break;
+	case fnGetPCInjCurr:
+		GetPCInjCurr();
+		OpenDSS_PackNone(Type, Size);
+		break;
+	case fnGetSourceInjCurrents:
+		GetSourceInjCurrents();
+		OpenDSS_PackNone(Type, Size);
+		break;
+	case fnZeroInjCurr:
+		ZeroInjCurr();
+		OpenDSS_PackNone(Type, Size);
+		break;
+	case fnDSSDisposeString:
+		DSSDisposeString(OpenDSS_UnpackString(Pointer));
+		OpenDSS_PackNone(Type, Size);
+		break;
+	default:
+		OpenDSS_PackString("Error, Function not recognized", Pointer, Type, Size);
+		break;
 	}
 }
 
