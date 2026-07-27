@@ -9,6 +9,9 @@
 #include <algorithm>
 #include <stdio.h>
 #include <stdlib.h>
+#include <utility>
+#include <unordered_map>
+#include <iterator>
 #include "System.h"
 #include "Sysutils.h"
 #include "d2c_structures.h"
@@ -19853,6 +19856,32 @@ void OpenDSS(int Function, uintptr_t* Pointer, int* Type, int* Size)
 		OpenDSS_PackString("Error, Function not recognized", Pointer, Type, Size);
 		break;
 	}
+}
+
+//--------------------------------------------------------------------------------
+// Implements the API_docs interface for the DLL
+//--------------------------------------------------------------------------------
+// Table of { Function code, "Function code, input type, Class.Property, documentation" }
+// entries, generated from C:/Temp/DLL_doc.md against the same Function codes used by
+// OpenDSS() (see TOpenDSSFunctionBase in OpenDSSCDLL.h). Not hand-maintained: regenerate
+// via the parsing script kept alongside the docs if the DLL surface changes.
+#include "APIDocsData.inc"
+
+char* API_docs(int index)
+{
+	static const std::unordered_map<int, const char*> APIDocsMap(
+		std::begin(API_DocsTable), std::end(API_DocsTable));
+
+	string result;
+	auto it = APIDocsMap.find(index);
+	if (it != APIDocsMap.end())
+		result = it->second;
+	else
+		result = "-1, no more parameters implemented";
+
+	char* presult = new char[result.size() + 1];
+	strcpy(presult, result.c_str());
+	return presult;
 }
 
 }

@@ -509,6 +509,12 @@ extern "C" {
 	DSS_DLL void OpenDSS(int Function, uintptr_t* Pointer, int* Type, int* Size);
 
 	//**************************************************************************************************
+	// Use this unified interface’s inline documentation to view all currently supported commands, 
+	// including their parameters, descriptions, and underlying function code.
+
+	DSS_DLL char* API_docs(int index);
+
+	//**************************************************************************************************
 
 	DSS_DLL int InitAndGetYparams(uintptr_t* hY, unsignedint* nBus, unsignedint* nNZ);
 	DSS_DLL void GetCompressedYMatrix(uintptr_t hY, unsignedint nBus, unsignedint nNz, int** ColPtr, int** RowIdx, complex** cVals);
