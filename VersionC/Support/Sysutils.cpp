@@ -85,10 +85,15 @@
 using namespace System;
 
 
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 #include <unistd.h>
 #include <sys/stat.h>
+#ifdef linux
 #include <sys/statfs.h>
+#else
+#include <sys/param.h>
+#include <sys/mount.h>	// macOS/BSD: struct statfs & statfs() live here instead of <sys/statfs.h>
+#endif
 
 #include <stddef.h>
 #include <stdio.h>
@@ -101,9 +106,11 @@ using namespace System;
 #include <dlfcn.h>
 #include <iostream>
 #include <cerrno>
+#ifdef linux
 #include <linux/unistd.h> // exit_group
 /* Because exit_group() appears to not be declared in linux/unistd.h */
 #include <sys/syscall.h>   /* For SYS_exit_group definition */
+#endif
 #endif
 
 #include <complex>
@@ -492,7 +499,7 @@ String ExtractShortPathName( const String& Filename )
 
 typedef String PathStr;
 
-#elif defined(linux)
+#elif defined(linux) || defined(__APPLE__)
 typedef SmallString<255> ComStr;
 //typedef SmallString<255> PathStr;
 //typedef SmallString<255> dirstr;
@@ -561,7 +568,7 @@ PathStr FExpand( const PathStr Path )
   PathStr result;
 #ifdef windows
   unsigned int PathStart = 0;
-#elif defined(linux)
+#elif defined(linux) || defined(__APPLE__)
     unsigned int PathStart = 1;
 #else
 #error unknown platform
@@ -589,7 +596,7 @@ PathStr FExpand( const PathStr Path )
 /* of Path without volume/Drive specification.                 */
 #ifdef windows
   PathStart = 3;  
-#elif defined(linux)
+#elif defined(linux) || defined(__APPLE__)
       /*replace ~/ with $home/*/
   if ( ( pa.length( ) >= 1 ) && ( pa[1 - 1] == _T('~')) && ( ( pa[2 - 1] == DirectorySeparator ) || ( pa.length( ) == 1 ) ) )
   {
@@ -608,7 +615,7 @@ PathStr FExpand( const PathStr Path )
 
 /* Expand TILDE to home Directory if appropriate. */      
 /* do we have A Drive/volume specification? */
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 /* do we have A Drive/volume specification? */
   if ( ( pa.length( ) > 1 ) && ( Sysutils__4.Contains(pa[1 - 1] ) ) && ( pa[2 - 1] == DriveSeparator ) )
   {
@@ -1046,7 +1053,7 @@ String ExeSearch( const String& Name, const String& DirList )
   return result;
 }
 
-#ifndef linux
+#ifdef windows
 bool FileIsReadOnly( const String& Filename )
 {
   bool result = false;
@@ -1288,7 +1295,7 @@ bool SameText( const String& S1, const String& S2 )
   return CompareText( S1, S2 ) == 0;
 }
 
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 /*==============================================================================*/
 /*   ANSI String functions                                                      */
 /*   These functions rely ON the character set loaded by the OS                 */
@@ -2156,7 +2163,7 @@ String AnsiUpperCase( const String& S )
   else
     result = _T("");
   return result;
-#elif defined(linux)
+#elif defined(linux) || defined(__APPLE__)
   return GenericAnsiUpperCase( S );
 #else
 #error unknown platform
@@ -2178,7 +2185,7 @@ String AnsiLowerCase( const String& S )
     result = _T("");
   return result;
 
-#elif defined(linux)
+#elif defined(linux) || defined(__APPLE__)
   return GenericAnsiLowerCase( S );
 #else
 #error unknown platform
@@ -2190,7 +2197,7 @@ int AnsiCompareStr( const String& S1, const String& S2 )
 {
 #ifdef windows
   return CompareString( LOCALE_USER_DEFAULT, 0, S1.c_str(), S1.length( ), S2.c_str(), S2.length( ) ) - 2;
-#elif defined(linux)
+#elif defined(linux) || defined(__APPLE__)
   return GenericAnsiCompareStr( S1, S2 );
 #else
 #error unknown platform
@@ -2202,7 +2209,7 @@ int AnsiCompareText( const String& S1, const String& S2 )
 {
 #ifdef windows
   return CompareString( LOCALE_USER_DEFAULT, NORM_IGNORECASE, S1.c_str(), S1.length( ), S2.c_str(), S2.length( ) ) - 2;
-#elif defined(linux)
+#elif defined(linux) || defined(__APPLE__)
   return GenericAnsiCompareText( S1, S2 );
 #else
 #error unknown platform
@@ -2214,7 +2221,7 @@ int AnsiStrComp( const Char* S1, const Char* S2 )
 {
 #ifdef windows
   return CompareString( LOCALE_USER_DEFAULT, 0, S1, - 1, S2, - 1 ) - 2;
-#elif defined(linux)
+#elif defined(linux) || defined(__APPLE__)
   return GenericAnsiStrComp( S1, S2 );
 #else
 #error unknown platform
@@ -2226,7 +2233,7 @@ int AnsiStrIComp( const Char* S1, const Char* S2 )
 {
 #ifdef windows
   return CompareString( LOCALE_USER_DEFAULT, NORM_IGNORECASE, S1, - 1, S2, - 1 ) - 2;
-#elif defined(linux)
+#elif defined(linux) || defined(__APPLE__)
   return GenericAnsiStrIComp( S1, S2 );
 #else
 #error unknown platform
@@ -2238,7 +2245,7 @@ int AnsiStrLComp( const Char* S1, const Char* S2, unsignedint MaxLen )
 {
 #ifdef windows
   return CompareString( LOCALE_USER_DEFAULT, 0, S1, MaxLen, S2, MaxLen ) - 2;
-#elif defined(linux)
+#elif defined(linux) || defined(__APPLE__)
   return GenericAnsiStrLComp( S1, S2, MaxLen );
 #else
 #error unknown platform
@@ -2250,7 +2257,7 @@ int AnsiStrLIComp( const Char* S1, const Char* S2, unsignedint MaxLen )
 {
 #ifdef windows
   return CompareString( LOCALE_USER_DEFAULT, NORM_IGNORECASE, S1, MaxLen, S2, MaxLen ) - 2;
-#elif defined(linux)
+#elif defined(linux) || defined(__APPLE__)
   return GenericAnsiStrLIComp( S1, S2, MaxLen );
 #else
 #error unknown platform
@@ -2264,7 +2271,7 @@ Char* AnsiStrLower( Char* str )
   Char* result = NULL;
   CharLower( str );
   return str;
-#elif defined(linux)
+#elif defined(linux) || defined(__APPLE__)
   return GenericAnsiStrLower( str );
 #else
 #error unknown platform
@@ -2278,7 +2285,7 @@ Char* AnsiStrUpper( Char* str )
   Char* result = NULL;
   CharUpper( str );
   return str;
-#elif defined(linux)
+#elif defined(linux) || defined(__APPLE__)
   return GenericAnsiStrUpper( str );
 #else
 #error unknown platform
@@ -4910,7 +4917,7 @@ String WrapText( const String& Line, const String& BreakStr, const TSysCharSet B
 
 #ifdef windows
 const Char sLineBreak[] = _T("\x0d\x0a");
-#elif defined (linux)
+#elif defined(linux) || defined(__APPLE__)
 const Char sLineBreak[] = _T("\x0a");
 #else
 #error unknown platform
@@ -4921,7 +4928,7 @@ String WrapText( const String& Line, int MaxCol )
   return WrapText( Line, sLineBreak, Sysutils__15, MaxCol );
 }
 
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 
 /*
    case translation tables
@@ -5707,7 +5714,7 @@ int StrIComp( const char* Str1, const char* Str2 )
 {
 #ifdef windows
   return _strcmpi(Str1, Str2);
-#elif defined(linux)
+#elif defined(linux) || defined(__APPLE__)
    return strcasecmp(Str1, Str2);
 #else
 #error unknown platform
@@ -5718,7 +5725,7 @@ int StrIComp( const wchar_t* Str1, const wchar_t* Str2 )
 {
 #ifdef windows
   return _wcsicmp(Str1, Str2);
-#elif defined(linux)
+#elif defined(linux) || defined(__APPLE__)
   return wcscasecmp(Str1, Str2);
 #else
 #error unknown platform
@@ -5729,7 +5736,7 @@ int StrLIComp( const char* Str1, const char* Str2, int l )
 {
 #ifdef windows
   return _strnicmp(Str1, Str2, l);
-#elif defined(linux)
+#elif defined(linux) || defined(__APPLE__)
   return strncasecmp(Str1, Str2, l);
 #else
 #error unknown platform
@@ -5740,7 +5747,7 @@ int StrLIComp( const wchar_t* Str1, const wchar_t* Str2, int l )
 {
 #ifdef windows
   return _wcsnicmp(Str1, Str2, l);
-#elif defined(linux)
+#elif defined(linux) || defined(__APPLE__)
   return wcsncasecmp(Str1, Str2, l);
 #else
 #error unknown platform
@@ -6056,7 +6063,7 @@ String GetTempDir( bool Global )
     result = IncludeTrailingPathDelimiter( result );
   return result;
 }
-#elif defined(linux)
+#elif defined(linux) || defined(__APPLE__)
 String GetTempDir( bool Global )
 {
   String result;
@@ -6957,7 +6964,7 @@ int ExecuteProcess( const String& Path, const String* comline, int comline_maxid
 }
 
 
-#elif defined(linux)
+#elif defined(linux) || defined(__APPLE__)
 String GetEnvironmentVariable( const String& EnvVar )
 {
   char* p;
@@ -7127,7 +7134,16 @@ cint FpExecV( const char* Path, char** Argv )
 
 void Fpexit( int Status )
 {
+#ifdef linux
   syscall(SYS_exit_group, Status);
+#elif defined(__APPLE__)
+  // SYS_exit_group is a Linux-only raw syscall; _exit() (declared via
+  // <unistd.h>, included above) is the portable POSIX equivalent for
+  // immediately terminating the process.
+  _exit(Status);
+#else
+  syscall(SYS_exit_group, Status);
+#endif
 }
 
 pid_t fpfork( )
@@ -7757,7 +7773,7 @@ String AdjustPath(const String& S)
     return S;
 }
 
-#elif defined(linux)
+#elif defined(linux) || defined(__APPLE__)
 
 
 void Beep( )
@@ -9028,7 +9044,7 @@ void Sysutils_initialization()
 
 #ifdef windows
   LoadVersionInfo();
-#elif defined(linux)
+#elif defined(linux) || defined(__APPLE__)
   FixDriveStrInit();
 #endif
 }

@@ -4,7 +4,7 @@
 
 #include "CmdForms.h"
 
-#ifndef linux
+#ifdef windows
   #define NOMINMAX
   #include <windows.h>
 #else
@@ -68,14 +68,18 @@ String GetDSSExeFile( )
   String result;
   Char TheFileName[ MAX_PATH ];
   FillChar( TheFileName, sizeof( TheFileName ), '\x00' );  // Fill it with nulls
-  #ifndef linux
+  #ifdef windows
     GetModuleFileName( NULL, TheFileName, sizeof( TheFileName ) );
-  #else
+  #elif __linux__
     ssize_t len = readlink("/proc/self/exe", TheFileName, sizeof(TheFileName)-1);
     if(len != -1){
       TheFileName[len] = '\0';
       return std::string(TheFileName);
     }
+  #else
+    // GetModuleFileName() here resolves to the emulation in windows2posix.h
+    // (e.g. _NSGetExecutablePath() on macOS).
+    GetModuleFileName( NULL, TheFileName, sizeof( TheFileName ) );
   #endif
 
   result = TheFileName;

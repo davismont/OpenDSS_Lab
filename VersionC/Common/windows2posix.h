@@ -12,6 +12,11 @@
 #include <system_error>
 #include <unistd.h>	// readlink
 #include <time.h>	// clock_gettime
+#include <stdlib.h>	// realpath
+
+#if defined(__APPLE__)
+#include <mach-o/dyld.h>	// _NSGetExecutablePath
+#endif
 
 // Notes / Requirements:
 //
@@ -105,7 +110,25 @@ static inline size_t GetModuleFileName(const T& must_be_zero, char *Filename, si
 	// a better standard value for errno?
 
 	// GetDSSExeFile( ) in Forms/CmdForms.cpp happens to have similar code:
+#if defined(__APPLE__)
+	// macOS has no /proc filesystem; use _NSGetExecutablePath instead of readlink.
+	char rawPath[4096];
+	uint32_t rawPathSize = sizeof(rawPath);
+	ssize_t len = -1;
+	if (_NSGetExecutablePath(rawPath, &rawPathSize) == 0) {
+		// _NSGetExecutablePath does not resolve symlinks; realpath() does.
+		char *resolved = realpath(rawPath, nullptr);
+		if (resolved != nullptr) {
+			len = ssize_t(strlen(resolved));
+			if (size_t(len) >= max_Filename_len)
+				len = ssize_t(max_Filename_len) - 1;
+			std::memcpy(Filename, resolved, size_t(len));
+			free(resolved);
+		}
+	}
+#else
 	ssize_t len = readlink("/proc/self/exe", Filename, max_Filename_len);
+#endif
 	if(len != -1)
 		return 0; // readlink() has already set errno, so this covers GetLastError.
 

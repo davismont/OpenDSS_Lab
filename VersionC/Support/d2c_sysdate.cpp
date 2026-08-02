@@ -78,7 +78,7 @@
 #include "d2c_sysstring.h"
 #include <stdio.h>
 
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 #include <sys/time.h>
 #include <time.h>
 #endif
@@ -365,7 +365,7 @@ void GetLocalTime( TSystemTime& SYSTEMTIME )
   SYSTEMTIME.wSecond = Syst.wSecond;
   SYSTEMTIME.wMilliseconds = Syst.wMilliseconds;
 }
-#elif defined(linux)
+#elif defined(linux) || defined(__APPLE__)
 
 time_t Fptime( )
 {

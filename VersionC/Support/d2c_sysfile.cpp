@@ -78,8 +78,10 @@
 #include "Sysutils.h"
 
 #include <string.h> // strnlen
+#if defined(linux) || defined(__APPLE__)
 #ifdef linux
-#include <sys/syscall.h>   /* For SYS_xxx definitions */
+#include <sys/syscall.h>   /* For SYS_xxx definitions (getdents64) */
+#endif
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
@@ -88,6 +90,9 @@ typedef struct stat Stat;
 #include <stdio.h>
 #include <sys/types.h>
 #include <dirent.h>
+#ifndef O_LARGEFILE
+#define O_LARGEFILE 0	// Not needed/defined on non-Linux POSIX systems (e.g. macOS); off_t is already 64-bit there.
+#endif
 #endif
 
 using namespace std;
@@ -98,12 +103,15 @@ using namespace std;
 namespace System
 {
 
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 
 #include "d2c_sysmath.h"  // Hi
+#ifdef linux
 #undef __GLIBC__
 #define  __GLIBC__ 1
 #include <linux/stat.h> //S_IWUSR etc.
+#endif
+// On macOS, S_IWUSR etc. come from <sys/stat.h>, already included above.
 
 
 cint fpopen( const char* Path, cint Flags, mode_t Mode )
@@ -192,6 +200,7 @@ cint Fprmdir( const char* Path )
 }
 
 
+#ifdef linux
 Dir* Fpopendir( const char* DirName )
 {
   Dir* result = NULL;
@@ -223,6 +232,25 @@ Dir* Fpopendir( const char* DirName )
   ptr->dd_max = sizeof( *ptr->dd_buf );
   return ptr;
 }
+#elif defined(__APPLE__)
+// macOS has no getdents64() syscall; use the standard opendir()/readdir() API
+// instead, and stash the DIR* handle in the otherwise-unused dd_lock field.
+Dir* Fpopendir( const char* DirName )
+{
+  DIR* dirp = opendir( DirName );
+  if ( dirp == NULL )
+    return NULL;
+  Dir* ptr = new Dir;
+  ptr->dd_buf = new dirent;
+  ptr->dd_fd = dirfd( dirp );
+  ptr->dd_loc = 0;
+  ptr->dd_size = 0;
+  ptr->dd_nextoff = 0;
+  ptr->dd_max = sizeof( *ptr->dd_buf );
+  ptr->dd_lock = (void*) dirp;
+  return ptr;
+}
+#endif
 
 Dir* Fpopendir( const wchar_t* DirName )
 {
@@ -233,6 +261,7 @@ Dir* Fpopendir( const wchar_t* DirName )
 
 
 
+#ifdef linux
 cint Fpclosedir( Dir* dirP )
 {
   cint result = 0;
@@ -241,8 +270,18 @@ cint Fpclosedir( Dir* dirP )
   delete dirP;
   return result;
 }
+#elif defined(__APPLE__)
+cint Fpclosedir( Dir* dirP )
+{
+  cint result = closedir( (DIR*) dirP->dd_lock ) == 0 ? 0 : -errno;
+  delete dirP->dd_buf;
+  delete dirP;
+  return result;
+}
+#endif
 
 
+#ifdef linux
 dirent* Fpreaddir( Dir* dirP )
 {
   dirent* result = NULL;
@@ -268,20 +307,34 @@ dirent* Fpreaddir( Dir* dirP )
   while ( ! ( dp->d_fileno != 0 ) ); // don'T show deleted files
   return dp;
 }
-
+#elif defined(__APPLE__)
+dirent* Fpreaddir( Dir* dirP )
+{
+  struct dirent* dp = NULL;
+  do
+  {
+    dp = readdir( (DIR*) dirP->dd_lock );
+    if ( dp == NULL )
+      return NULL;
+  }
+  while ( dp->d_fileno == 0 ); // don't show deleted files
+  return dp;
+}
 #endif
+
+#endif // defined(linux) || defined(__APPLE__)  -- closes the block opened at "namespace System {"
 typedef unsigned char* PByte;
 const int TextRecNameLength = 256;
 const int TextRecBufSize = 256;
 const int FilerecNameLength = 255;
-#ifndef linux
+#ifdef windows
 THandle UnusedHandle = ((THandle) - 1 );
 THandle StdInputHandle = 0;
 THandle StdOutputHandle = 0;
 THandle StdErrorHandle = 0;
 #endif
 bool FileNameCaseSensitive = true;
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 bool CtrlZMarksEOF = false; /* #26 not considered as end of File */
 TTextLineBreakStyle DefaultTextLineBreakStyle = tlbsLF;
 #else
@@ -355,11 +408,12 @@ wchar_t* strcpy_max(wchar_t* pDest, const wchar_t* pSource, int SourceLen, int H
 }
 
 
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 /******************************************************************************
                           Low Level File routines
 ******************************************************************************/
 
+#ifdef linux
 bool do_isdevice( THandle Handle )
 /*
   interface to Unix IOCTL call.
@@ -376,6 +430,14 @@ bool do_isdevice( THandle Handle )
   result = ( ioctl( Handle, IOCtl_TCGETS, &Data[0] ) != - 1 );
   return result;
 }
+#elif defined(__APPLE__)
+bool do_isdevice( THandle Handle )
+{
+  // TCGETS is a Linux-only ioctl request number; macOS/BSD has no equivalent
+  // ioctl. isatty() is the portable way to ask "is this fd a terminal device".
+  return isatty( (int) Handle ) != 0;
+}
+#endif
 #else
 bool do_isdevice( THandle Handle )
 {
@@ -385,7 +447,7 @@ bool do_isdevice( THandle Handle )
 }
 #endif
 
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 void do_close( THandle Handle )
 {
   fpclose( ((cint) Handle ) );
@@ -399,7 +461,7 @@ void do_close( THandle h )
 }
 #endif
 
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 WORD Errno2InOutRes( )
 {
   InOutRes = PosixToRunError( geterrno() );
@@ -452,7 +514,7 @@ void Errno2InOutRes( )
 }
 #endif
 
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 int64_t do_seekend( THandle Handle )
 {
   int64_t result = 0;
@@ -511,7 +573,7 @@ void DoDirSeparators( wchar_t* P )
       P[i] = DirectorySeparator;
 }
 
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 void Do_Open( void* F, Char* P, int Flags )
 /*
   FileRec and TextRec have both Handle and Mode as the First items So
@@ -728,7 +790,7 @@ void Do_Open( void* f, Char* P, int Flags )
 }
 #endif
 
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 
 typedef mode_t mode_t;
 typedef mode_t* pMode;
@@ -801,7 +863,7 @@ void do_erase( wchar_t* P )
 }
 #endif
 
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 void do_rename( const char* p1, const char* p2 )
 {
   if ( Fprename( p1, p2 ) < 0 )
@@ -838,7 +900,7 @@ void do_rename( wchar_t* p1, char* p2 )
 #endif
 
 
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 int do_write( THandle Handle, void* Addr, int Len )
 {
   int result = 0;
@@ -873,7 +935,7 @@ int do_write( THandle h, void* addr, int Len )
 }
 #endif
 
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 int do_read( THandle Handle, void* Addr, int Len )
 {
   int result = 0;
@@ -911,7 +973,7 @@ int do_read( THandle h, void* addr, int Len )
 }
 #endif
 
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 int64_t do_filepos( THandle Handle )
 {
   int64_t result = 0;
@@ -955,7 +1017,7 @@ int64_t do_filepos( THandle Handle )
 }
 #endif
 
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 void do_seek( THandle Handle, int64_t pos )
 {
   if ( Fplseek( Handle, pos, SEEK_SET ) < 0 )
@@ -989,7 +1051,7 @@ void do_seek( THandle Handle, int64_t Pos )
 }
 #endif
 
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 cint fpfstat( cint FD, Stat& sb )
 {
   cint r = fstat(FD, &sb);
@@ -1025,7 +1087,7 @@ int64_t do_filesize( THandle Handle )
 #endif
 
 // Truncate at A given position 
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 cint Fpftruncate( cint FD, off_t flength )
 /* see Notes lseek. this one is completely Similar for the Parameter (but
 doesn'T have the ReturnValue 64-bit problem)*/
@@ -1158,7 +1220,7 @@ void CloseFile( TTextRec& t )
       if ( t.Mode == fmOutput )
         FileFunc( t.InOutFunc )( t );
         /* Only close functions not connected to Stdout.*/
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
       if ( ( t.Handle != STDIN_FILENO ) && ( t.Handle != STDOUT_FILENO ) && ( t.Handle != STDERR_FILENO ) )
 #else
       if ( ( t.Handle != StdInputHandle ) && ( t.Handle != StdOutputHandle ) && ( t.Handle != StdErrorHandle ) )
@@ -3827,7 +3889,7 @@ BOOL __stdcall CreateDirectoryTrunc( void* Name )
 }
 #endif
 
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 void MkDir( const string& S )
 {
   // read/write Search permission for everyone
@@ -3859,7 +3921,7 @@ void MkDir( const wstring& S )
   MkDir(s);
 }
 
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 void RmDir( const string& S )
 {
   char Buffer[ 256 ];
@@ -3897,7 +3959,7 @@ void RmDir( const wstring& S )
   RmDir(s);
 }
 
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 void ChDir( const string& S )
 {
   char Buffer[ 256 ];
@@ -3997,7 +4059,7 @@ void GetDir( unsignedchar drivenr, String& Dir )
   if ( ! FileNameCaseSensitive ) 
     Dir = UpperCase( Dir );
 }
-#elif defined(linux)
+#elif defined(linux) || defined(__APPLE__)
 // !! for Now we use getcwd, unless we are fpc_use_libc.
 // !! the old Code  is _still needed_ since the syscall sometimes doesn'T work
 // !! ON special filesystems like NFS etc.
@@ -4124,7 +4186,7 @@ void OpenStdIO( TTextRec& t, int Mode, THandle hdl )
   }
 }
 
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 void SysInitStdIO( )
 {
   OpenStdIO( Input, fmInput, STDIN_FILENO );

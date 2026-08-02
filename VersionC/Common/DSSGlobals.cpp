@@ -181,7 +181,7 @@ namespace DSSGlobals
      std::vector < int > ActorProgressCount;
 #ifdef windows
      std::vector<HANDLE> pyServer;
-#elif __linux__
+#elif __linux__ || defined(__APPLE__)
      std::vector<string> pyServer;
 #endif
 
@@ -986,7 +986,7 @@ namespace DSSGlobals
             cbReplyBytes, // = length of string + terminating '\0' !!!
             &Bytes,
             NULL);
-#elif __linux__
+#elif __linux__ || defined(__APPLE__)
         int fd = open(pyServer[ActorID].c_str(), O_WRONLY); 
         int wr = write(fd, &lpvMessage[0], cbReplyBytes);
         close(fd);
@@ -1010,7 +1010,7 @@ namespace DSSGlobals
             10000, // size of buffer
             &MsgSz, // number of bytes read
             NULL); // not overlapped
-#elif __linux__
+#elif __linux__ || defined(__APPLE__)
 
         std::string received_data;
         ssize_t bytes_read;
@@ -1295,7 +1295,7 @@ namespace DSSGlobals
             }
         }
         // if not found, something went wrong
-#elif __linux__
+#elif __linux__ || defined(__APPLE__)
         struct passwd* pw = getpwuid(getuid());
         const char* homedir = pw->pw_dir;
         string myFile = "";
@@ -1404,7 +1404,7 @@ namespace DSSGlobals
             {
                 GlobalResult = "There was an error connecting to the DSSpyServer.";
             }
-#elif __linux__
+#elif __linux__ || defined(__APPLE__)
             // Linux pipes
 
             pyServer[ActiveActor] = "pyServer_" + to_string(ActiveActor);
@@ -1455,7 +1455,7 @@ namespace DSSGlobals
             GlobalResult            = "The pyServer does not exists in this version of OpenDSS";
 #ifdef windows
             pyServer[ActiveActor] = NULL;
-#elif __linux__
+#elif __linux__ || defined(__APPLE__)
             pyServer[ActiveActor] = "";
 #endif
         }
@@ -1561,6 +1561,9 @@ namespace DSSGlobals
         #elif __linux__
         std::string command = "xdg-open " + url + " > /dev/null 2>&1";
             int hnd = system(command.c_str());
+        #elif defined(__APPLE__)
+        std::string command = "open " + url + " > /dev/null 2>&1";
+            int hnd = system(command.c_str());
         #endif
     }
 
@@ -1584,7 +1587,7 @@ namespace DSSGlobals
 
             CPU_Physical = std::thread::hardware_concurrency();
             CPU_Cores = sysinfo.dwNumberOfProcessors; // for now is the same
-        #elif __linux__
+        #elif __linux__ || defined(__APPLE__)
             CPU_Physical = std::thread::hardware_concurrency();
             CPU_Cores = sysconf(_SC_NPROCESSORS_ONLN);
         #endif
@@ -1807,7 +1810,7 @@ namespace DSSGlobals
         ActiveVSource[ActiveActor] = NULL;
 #ifdef windows
         pyServer[ActiveActor] = NULL;
-#elif __linux__
+#elif __linux__ || defined(__APPLE__)
         pyServer[ActiveActor] = "";
 #endif
         pyControlClass[ActiveActor] = NULL;

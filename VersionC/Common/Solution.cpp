@@ -318,7 +318,7 @@ namespace Solution
           CloseHandle(pyServer[ActiveActor]);
           pyServer[ActiveActor] = NULL;
       }
-#elif __linux__
+#elif __linux__ || defined(__APPLE__)
       if (!pyServer[ActiveActor].empty())
       {
         Write_2_PyServer(pyServer[ActiveActor], ActiveActor);
