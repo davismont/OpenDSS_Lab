@@ -75,7 +75,7 @@
 
 class Currency;
 
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 #include <dirent.h>
 #endif
 
@@ -580,7 +580,7 @@ void MkDir( const std::wstring& S );
 void GetDir( unsignedchar drivenr, SmallString<255>& Dir );
 void GetDir( unsignedchar drivenr, String& Dir );  
 
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
   /* Directory services */
 
 struct Dir {

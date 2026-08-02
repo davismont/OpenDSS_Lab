@@ -74,7 +74,7 @@
 #include "d2c_systobj.h"
 #include "d2c_varrec.h"
 
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 #include "errno.h"
 #endif
 
@@ -82,7 +82,7 @@
 
 namespace System {
 
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 
 const int ESysEPERM = 1;    /* operation not permitted */
 const int ESysENOENT = 2;    /* no such File or Directory */

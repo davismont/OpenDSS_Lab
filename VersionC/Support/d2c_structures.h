@@ -36,7 +36,7 @@ typedef std::vector< void* > TList;
 typedef TTextRec Textfile;
 typedef std::thread TThread;
 typedef int TFontStyles;
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 typedef int32_t int32;
 typedef int32_t TEvent;
 typedef int8_t DynamicArrayByte;

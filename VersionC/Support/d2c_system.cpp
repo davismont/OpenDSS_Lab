@@ -84,6 +84,10 @@
 #include "windows2posix.h"
 #endif
 
+#if defined(__APPLE__)
+#include <mach-o/dyld.h>
+#endif
+
 #if defined(windows) && defined (_WIDESTRING)
 #include <ShellAPI.h> // CommandLineToArgvW
 #endif
@@ -873,6 +877,54 @@ void SysInitExecPath( )
     execpathstr[0] = ((Char) i );
 }
 
+#elif defined(__APPLE__)
+
+int ParamCount( )
+{
+  int result = 0;
+  result = Argc - 1;
+  return result;
+}
+
+SmallString<255> execpathstr;
+
+String ParamStr( int l )
+{
+   /* stricly conforming Posix Applications  */
+   /* have the executing Filename as Argv[0] */
+  if ( l == 0 )
+    return execpathstr;
+  else
+  if ( l < Argc )
+     return Argv[l];
+   else
+     return String();
+}
+
+void SysInitExecPath( )
+{
+  // macOS has no /proc filesystem; use _NSGetExecutablePath instead of readlink.
+  char rawPath[4096];
+  uint32_t size = sizeof(rawPath);
+  execpathstr[0] = '\x00';
+  if ( _NSGetExecutablePath( rawPath, &size ) == 0 )
+  {
+    // _NSGetExecutablePath does not resolve symlinks; realpath() does.
+    // Passing NULL asks realpath() to malloc a buffer of sufficient size
+    // (it must be at least PATH_MAX, which the 255-byte execpathstr is not).
+    char* realPath = realpath( rawPath, NULL );
+    if ( realPath != NULL )
+    {
+      size_t len = strlen( realPath );
+      if ( len > 254 )
+        len = 254;
+      std::memcpy( &execpathstr[1], realPath, len );
+      execpathstr[0] = (Char) len;
+      free( realPath );
+    }
+  }
+}
+
 #else
 #error unknown platform
 #endif
@@ -909,7 +961,7 @@ void System_initialization()
   setup_arguments( );
 #endif
 
-#elif defined(linux)
+#elif defined(linux) || defined(__APPLE__)
   SysInitExecPath( );
 #else
   #error system not defined

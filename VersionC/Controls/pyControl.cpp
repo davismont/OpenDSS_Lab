@@ -328,7 +328,7 @@ int TpyControlObj::HandlePIPE(int ActorID)
                 Write_2_PyServer("OK", ActorID);
         }
     }
-#elif __linux__
+#elif __linux__ || defined(__APPLE__)
     // Windows routine
     while ((pyServer[ActorID] != "") && POnline)
     {
@@ -397,7 +397,7 @@ void TpyControlObj::sample(int ActorID)
         }
         GlobalResult = "";
     }
-#elif __linux__
+#elif __linux__ || defined(__APPLE__)
     if (!(pyServer[ActorID].empty()))
     {
         Write_2_PyServer(pyScript, ActorID);

@@ -75,7 +75,7 @@
 #include "Sysutils.h"
 #include <algorithm>
 
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 #ifdef OPENDSSC_UNUSED_STR_FUNCS
 #include<iconv.h>
 #include <langinfo.h>
@@ -327,7 +327,7 @@ std::wstring UCS4StringToWideString( const UCS4String& S )
   result.resize( resindex - 1 );
   return result;
 }
-#elif defined (linux)
+#elif defined(linux) || defined(__APPLE__)
 /* Unicode encoding Name */
 
 
@@ -957,7 +957,7 @@ wchar_t char2wchar(char xc)
 }
 
 
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 
 void InitThread( )
 { // unicode_encoding4, because under linux sizeof(wchar_t) == 4

@@ -56,18 +56,18 @@
 #include "InvControl.h"
 #include "ExpControl.h"
 #include "pyControl.h"
-#ifndef linux
+#ifdef windows
 #include <shellapi.h>
 #define NOMINMAX
 #include <windows.h>
 #else
 #include "windows2posix.h"
 #endif
-#include <iostream> 
-#include <fstream>  
+#include <iostream>
+#include <fstream>
 #include <stdlib.h>
-#include <stdio.h>   
-#ifndef linux
+#include <stdio.h>
+#ifdef windows
 #include <urlmon.h>
 #include <shlobj.h>
 #endif
@@ -336,7 +336,7 @@ namespace DSSGlobals
     //    Variable for hosing the pipe to communicate with the Python server (Console)
     #ifdef windows
     extern std::vector <HANDLE> pyServer;
-    #elif __linux__
+    #elif __linux__ || defined(__APPLE__)
     extern std::vector<String> pyServer;
     #endif
     //extern TProgress* ActorProgress;

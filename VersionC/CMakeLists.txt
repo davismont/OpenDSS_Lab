@@ -298,10 +298,18 @@ if((MSVC) OR (MINGW))
 		${CMAKE_THREAD_LIBS_INIT}
 		${KLUSOLVE_LIB}
 	)
+elseif(APPLE)
+	# macOS: unlike Linux, std::filesystem ships in libc++ itself (no separate
+	# stdc++fs library exists), and uuid_generate()/dlopen() are both part of
+	# libSystem, so there is no standalone "uuid" library to link against either.
+	set(OPENDSSC_COMMON_LIBS
+		${CMAKE_THREAD_LIBS_INIT}
+		${KLUSOLVE_LIB}
+	)
 else()
 	# Linux
 	# NOTE: iconv seems to be required on some recent compilers.
-	#       From the GCC bugtracker and tickets from other projects, 
+	#       From the GCC bugtracker and tickets from other projects,
 	#       it could be a bug in the compiler setup, but linking iconv
 	#		is enough to work around it.
 	set(OPENDSSC_COMMON_LIBS

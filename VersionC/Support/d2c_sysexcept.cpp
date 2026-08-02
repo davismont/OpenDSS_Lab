@@ -94,7 +94,7 @@ EInvalidPointer* InvalidPointer = NULL;
 TOnShowException OnShowException = NULL;
 int ExitCode = 0;
 
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 int geterrno( )
 {
   return errno;
@@ -349,7 +349,7 @@ int GetLastOSError( )
 {
   return GetLastError();
 }
-#elif defined(linux)
+#elif defined(linux) || defined(__APPLE__)
 
 const Char* sys_errlist [ 125/*# range 0..sys_errn-1*/ ];
 void sys_errlistInit( )
@@ -717,7 +717,7 @@ public:
 ErrorHandling_unit()
 {
   ErrorHandling_initialization();
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
   sys_errlistInit();
 #endif
 }

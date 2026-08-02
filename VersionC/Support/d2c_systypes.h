@@ -75,7 +75,7 @@
 #include "windows.h"
 #define windows 1
 
-#elif defined(linux)
+#elif defined(linux) || defined(__APPLE__)
 
 #include <inttypes.h>
 #include <time.h>
@@ -233,7 +233,7 @@ typedef wchar_t* PUCS2Char;
 
 const int MaxLongint = 0x7FFFFFFF;
 #ifndef __BORLANDC__
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 const int MAXINT = std::numeric_limits<int>::max();
 const int MaxInt = MAXINT;
 #else
@@ -259,7 +259,7 @@ typedef Char** PPCharArray;
 
 typedef uintptr_t NativeUInt;
 
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 
 typedef uintptr_t THandle;
 typedef uintptr_t TLibHandle;

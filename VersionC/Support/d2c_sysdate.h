@@ -194,7 +194,7 @@ void DateTimeToSystemTime( TDateTime DateTime, TSystemTime& SYSTEMTIME );
 TDateTime SystemTimeToDateTime( const TSystemTime& SYSTEMTIME );
 void GetLocalTime( TSystemTime& SYSTEMTIME );
 
-#elif defined(linux)
+#elif defined(linux) || defined(__APPLE__)
 
 typedef WORD* PDayTable;
 typedef WORD TDayTable [ 12/*# range 1..12*/ ];
