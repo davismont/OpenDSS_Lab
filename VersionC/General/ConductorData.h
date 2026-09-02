@@ -17,6 +17,7 @@
 
 namespace ConductorData
 {
+using Ucomplex::complex;
 
 const int NumConductorClassProps = 13;
 

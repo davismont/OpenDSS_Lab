@@ -23,6 +23,7 @@
 
 namespace Line
 {
+using Ucomplex::complex;
 
 
 /*

@@ -18,6 +18,7 @@
 
 namespace DSSClassDefs
 {
+using Ucomplex::complex;
 
     extern unsigned int BaseClassMask;
     extern unsigned int CLASSMASK;

@@ -160,7 +160,9 @@
 #include "CmdForms.h"
 #include "myCmdUtils.h"
 #include "myCmdUtils.cpp"
+#ifdef windows
 #include <Windows.h>
+#endif
 
 #ifdef OPENDSSC_CPP_EXTRA_HEADER
 // Include another file from a parent project.
@@ -1226,14 +1228,14 @@ char* LinesS(int mode, char* arg)
 void LinesV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
 	TLineObj* LineElem = nullptr;
-	complex		Ztemp = cmplx(0, 0);
+	Ucomplex::complex		Ztemp = cmplx(0, 0);
 	double		Factor = 0.0;
 	int			i = 0,
 		j = 0,
 		k = 0,
 		iV = 0,
 		NValues = 0;
-	complex* cValues = nullptr;
+	Ucomplex::complex* cValues = nullptr;
 	double* PDouble = nullptr;
 
 	switch (mode)
@@ -2944,10 +2946,10 @@ void BUSV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 				Voc = 0,
 				Z = 0,
 				Y1 = 0;
-	complex		Isc = cmplx(0, 0),
+	Ucomplex::complex		Isc = cmplx(0, 0),
 				Volts = cmplx(0, 0);
 	TDSSBus*	pBus = nullptr;
-	complex		V012[4] = { cmplx(0,0),cmplx(0,0) , cmplx(0,0), cmplx(0,0) },
+	Ucomplex::complex		V012[4] = { cmplx(0,0),cmplx(0,0) , cmplx(0,0), cmplx(0,0) },
 				Vph[4]	= { cmplx(0,0),cmplx(0,0) , cmplx(0,0), cmplx(0,0) };
 	double		BaseFactor = 0.0;
 	polar		voltsp = {};
@@ -2990,7 +2992,7 @@ void BUSV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 				}
 			}
 		}
-		*mySize = myCmplxArray.size() * sizeof(complex);
+		*mySize = myCmplxArray.size() * sizeof(Ucomplex::complex);
 		*myPtr = (uintptr_t)(void*)(myCmplxArray.data());
 		break;
 	case 1:												//  Bus.SeqVoltages
@@ -3092,7 +3094,7 @@ void BUSV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 			}
 		}
 		*myPtr = (uintptr_t)(void*)(myCmplxArray.data());
-		*mySize = myCmplxArray.size() * sizeof(complex);
+		*mySize = myCmplxArray.size() * sizeof(Ucomplex::complex);
 		break;
 	case 4:												//  Bus.Isc
 		*myType = 3;
@@ -3115,7 +3117,7 @@ void BUSV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 			}
 		}
 		*myPtr = (uintptr_t)(void*)(myCmplxArray.data());
-		*mySize = myCmplxArray.size() * sizeof(complex);
+		*mySize = myCmplxArray.size() * sizeof(Ucomplex::complex);
 		break;
 	case 5:												//  Bus.PuVoltages
 		*myType = 3;
@@ -3152,7 +3154,7 @@ void BUSV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 			}
 		}
 		*myPtr = (uintptr_t)(void*)(myCmplxArray.data());
-		*mySize = myCmplxArray.size() * sizeof(complex);
+		*mySize = myCmplxArray.size() * sizeof(Ucomplex::complex);
 		break;
 	case 6:												//  Bus.ZscMatrix
 		*myType = 3;
@@ -3189,7 +3191,7 @@ void BUSV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 			}
 		}
 		*myPtr = (uintptr_t)(void*)(myCmplxArray.data());
-		*mySize = myCmplxArray.size() * sizeof(complex);
+		*mySize = myCmplxArray.size() * sizeof(Ucomplex::complex);
 		break;
 	case 7:												//  Bus.Zsc1
 		*myType = 3;
@@ -3204,7 +3206,7 @@ void BUSV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 			}
 		}
 		*myPtr = (uintptr_t)(void*)(myCmplxArray.data());
-		*mySize = myCmplxArray.size() * sizeof(complex);
+		*mySize = myCmplxArray.size() * sizeof(Ucomplex::complex);
 		break;
 	case 8:												//  Bus.Zsc0
 		*myType = 3;
@@ -3219,7 +3221,7 @@ void BUSV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 			}
 		}
 		*myPtr = (uintptr_t)(void*)(myCmplxArray.data());
-		*mySize = myCmplxArray.size() * sizeof(complex);
+		*mySize = myCmplxArray.size() * sizeof(Ucomplex::complex);
 		break;
 	case 9:												//  Bus.YscMatrix
 		*myType = 3;
@@ -3256,7 +3258,7 @@ void BUSV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 			}
 		}
 		*myPtr = (uintptr_t)(void*)(myCmplxArray.data());
-		*mySize = myCmplxArray.size() * sizeof(complex);
+		*mySize = myCmplxArray.size() * sizeof(Ucomplex::complex);
 		break;
 	case 10:												//  Bus.CplxSeqVoltages
 		*myType = 3;
@@ -3297,7 +3299,7 @@ void BUSV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 
 		}
 		*myPtr = (uintptr_t)(void*)(myCmplxArray.data());
-		*mySize = myCmplxArray.size() * sizeof(complex);
+		*mySize = myCmplxArray.size() * sizeof(Ucomplex::complex);
 		break;
 	case 11:												//  Bus.VLL
 		*myType = 3;
@@ -3357,7 +3359,7 @@ void BUSV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 			}
 		}
 		*myPtr = (uintptr_t)(void*)(myCmplxArray.data());
-		*mySize = myCmplxArray.size() * sizeof(complex);
+		*mySize = myCmplxArray.size() * sizeof(Ucomplex::complex);
 		break;
 	case 12:												//  Bus.PuVLL
 		*myType = 3;
@@ -3422,7 +3424,7 @@ void BUSV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 			}
 		}
 		*myPtr = (uintptr_t)(void*)(myCmplxArray.data());
-		*mySize = myCmplxArray.size() * sizeof(complex);
+		*mySize = myCmplxArray.size() * sizeof(Ucomplex::complex);
 		break;
 	case 13:												//  Bus.VMagAngle
 		*myType = 3;
@@ -4355,12 +4357,12 @@ char* CircuitS(int mode, char* arg)
 //************************Structure type properties*******************************
 void CircuitV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
-	complex LossValue{};
+	Ucomplex::complex LossValue{};
 	TLineObj* pLine = nullptr;
-	complex Loss{};
+	Ucomplex::complex Loss{};
 	TTransfObj* pTransf;
 	TDSSCktElement* pCktElem = {};
-	complex Curr= cmplx(0,0),
+	Ucomplex::complex Curr= cmplx(0,0),
 			cPower = cmplx(0,0),
 			cLoss = cmplx(0, 0),
 			Volts = cmplx(0, 0);
@@ -4381,7 +4383,7 @@ void CircuitV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 	klusparseset_t hY{};
 	std::vector<unsigned int> ColPtr;
 	std::vector<unsigned int> RowIdx;
-	std::vector<complex> cVals;
+	std::vector<Ucomplex::complex> cVals;
 	vector <double> Temp;
 	vector <string> Temp2;
 	int* Pint = 0;
@@ -4398,7 +4400,7 @@ void CircuitV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 		}
 		else
 			myCmplxArray[0] = cmplx(0, 0);
-		*mySize = myCmplxArray.size() * sizeof(complex);
+		*mySize = myCmplxArray.size() * sizeof(Ucomplex::complex);
 		*myPtr = (uintptr_t)(void*)(myCmplxArray.data());
 		break;
 	case 1:                                             // Circuit.LineLosses
@@ -4417,7 +4419,7 @@ void CircuitV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 			myCmplxArray[0] = cmulreal(Loss, 0.001);
 		}
 		*myPtr = (uintptr_t)(void*)(myCmplxArray.data());
-		*mySize = myCmplxArray.size() * sizeof(complex);
+		*mySize = myCmplxArray.size() * sizeof(Ucomplex::complex);
 		break;
 	case 2:                                             // Circuit.SubstationLosses
 		*myType = 3; //complex
@@ -4443,7 +4445,7 @@ void CircuitV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 		}
 
 		*myPtr = (uintptr_t)(void*)(myCmplxArray.data());
-		*mySize = myCmplxArray.size() * sizeof(complex);
+		*mySize = myCmplxArray.size() * sizeof(Ucomplex::complex);
 		break;
 	case 3:                                             // Circuit.TotalPower
 		*myType = 3; //complex
@@ -4902,16 +4904,16 @@ void CircuitV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 // Implements the CktElement interface for the DLL
 //--------------------------------------------------------------------------------
 // ******************************CktElement Functions************************** 
-void CalcSeqCurrents(TDSSCktElement* pActiveElement, complex* i012) 
+void CalcSeqCurrents(TDSSCktElement* pActiveElement, Ucomplex::complex* i012) 
 {
 	int			Nvalues = 0,
 				i		= 0, 
 				j		= 0, 
 				k		= 0, 
 				iV		= 0;
-	complex		IPh[4]	= { cmplx(0,0),cmplx(0,0) , cmplx(0,0) ,cmplx(0,0) }, 
+	Ucomplex::complex		IPh[4]	= { cmplx(0,0),cmplx(0,0) , cmplx(0,0) ,cmplx(0,0) }, 
 				I012a[4]= { cmplx(0,0),cmplx(0,0) , cmplx(0,0) ,cmplx(0,0) };
-	vector <complex> cBuffer;
+	vector <Ucomplex::complex> cBuffer;
 
 	auto with0 = ActiveCircuit[ActiveActor];
 	auto with1 = pActiveElement;
@@ -4968,14 +4970,14 @@ void CalcSeqCurrents(TDSSCktElement* pActiveElement, complex* i012)
 	}
 }
 
-void CalcSeqVoltages(TDSSCktElement* pActiveElement, complex* V012) 
+void CalcSeqVoltages(TDSSCktElement* pActiveElement, Ucomplex::complex* V012) 
 {
 	int		Nvalues = 0, 
 			i		= 0, 
 			j		= 0, 
 			k		= 0, 
 			iV		= 0;
-	complex VPh[4]	= { cmplx(0,0), cmplx(0,0), cmplx(0,0), cmplx(0,0) }, 
+	Ucomplex::complex VPh[4]	= { cmplx(0,0), cmplx(0,0), cmplx(0,0), cmplx(0,0) }, 
 			V012a[4]= { cmplx(0,0), cmplx(0,0), cmplx(0,0), cmplx(0,0) };
 
 	auto with0 = ActiveCircuit[ActiveActor];
@@ -5050,7 +5052,7 @@ int CktElementI(int mode, int arg)
 	TDSSCktElement* ctrl = nullptr;
 	TPCElement*		pPCElem = nullptr;
 	TPDElement*		pPDElem = nullptr;
-	complex			Volts = cmplx(0,0),
+	Ucomplex::complex			Volts = cmplx(0,0),
 					cResid = cmplx(0, 0);
 	bool			BData = false;
 
@@ -5288,8 +5290,8 @@ double CktElementF(int mode, double arg)
 					numcond = 0,
 					n = 0,
 					iV = 0;
-	complex			cResid = cmplx(0,0);
-	vector<complex> cBuffer;
+	Ucomplex::complex			cResid = cmplx(0,0);
+	vector<Ucomplex::complex> cBuffer;
 	string			S = "";
 	double			result = 0.0;
 
@@ -5420,8 +5422,8 @@ char* CktElementS(int mode, char* arg)
 					numcond = 0,
 					n = 0,
 					iV = 0;
-	complex			cResid = cmplx(0, 0);
-	vector<complex> cBuffer;
+	Ucomplex::complex			cResid = cmplx(0, 0);
+	vector<Ucomplex::complex> cBuffer;
 	string			S = "",
 					result = "0";
 
@@ -5537,11 +5539,11 @@ void CktElementV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 					j		= 0,
 					k		= 0,
 					NValues = 0;
-	complex			cResid	= cmplx(0,0);
-	vector<complex>	cBuffer,
+	Ucomplex::complex			cResid	= cmplx(0,0);
+	vector<Ucomplex::complex>	cBuffer,
 					myBuffer;
 	pComplexArray	cValues = nullptr;
-	complex 		VPh[4]	= { cmplx(0,0), cmplx(0,0), cmplx(0,0), cmplx(0,0) },
+	Ucomplex::complex 		VPh[4]	= { cmplx(0,0), cmplx(0,0), cmplx(0,0), cmplx(0,0) },
 					IPh[4]	= { cmplx(0,0), cmplx(0,0), cmplx(0,0), cmplx(0,0) },
 					I012[4] = { cmplx(0,0), cmplx(0,0), cmplx(0,0), cmplx(0,0) },
 					V012[4] = { cmplx(0,0), cmplx(0,0), cmplx(0,0), cmplx(0,0) };
@@ -5945,7 +5947,7 @@ void CktElementV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 					try
 					{
 						myCmplxArray.resize(with1->Fnterms * 3);
-						cValues = new complex[(with1->Fnterms * 3)];
+						cValues = new Ucomplex::complex[(with1->Fnterms * 3)];
 						// get complex seq voltages
 						CalcSeqVoltages(with0->FActiveCktElement, cValues);
 						// return 0 based array
@@ -5987,7 +5989,7 @@ void CktElementV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 					try
 					{
 						myCmplxArray.resize(with1->Fnterms * 3);
-						cValues = new complex[(with1->Fnterms * 3)];
+						cValues = new Ucomplex::complex[(with1->Fnterms * 3)];
 						// get complex seq currents
 						CalcSeqCurrents(with0->FActiveCktElement, cValues);
 						// return 0 based array
@@ -6011,7 +6013,7 @@ void CktElementV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 				}
 			}
 		}
-		*mySize = myCmplxArray.size() * sizeof(complex);
+		*mySize = myCmplxArray.size() * sizeof(Ucomplex::complex);
 		*myPtr = (uintptr_t)(void*)(myCmplxArray.data());
 		break;
 	case 15:                                        // CktElement.AllVariableNames
@@ -6266,7 +6268,7 @@ void CktElementV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 		myCmplxArray[0] = CZero;
 		if (ActiveCircuit[ActiveActor] != nullptr)
 		{
-			complex S_TotalLosses, S_LoadLosses, S_NoLoadLosses;
+			Ucomplex::complex S_TotalLosses, S_LoadLosses, S_NoLoadLosses;
 			myCmplxArray.resize(3);
 			ActiveCircuit[ActiveActor]->FActiveCktElement->GetLosses(S_TotalLosses, S_LoadLosses, S_NoLoadLosses, ActiveActor);
 			myCmplxArray[0] = S_TotalLosses;
@@ -6323,7 +6325,7 @@ double CmathLibF(int mode, double arg1, double arg2)
 //************************Structure type properties*******************************
 void CmathLibV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 {
-	complex*	pCmplx = nullptr;
+	Ucomplex::complex*	pCmplx = nullptr;
 	polar*		pPolar  = nullptr;
 	double* pDbl = nullptr;
 	double		a = 0.0,
@@ -6343,7 +6345,7 @@ void CmathLibV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 		*mySize = myCmplxArray.size() * sizeof(myCmplxArray[0]);
 		break;
 	case 1:											// CmathLib.ctopolardeg
-		pCmplx = (complex*)myPtr;
+		pCmplx = (Ucomplex::complex*)myPtr;
 		*myType = 3; //complex
 		myPolarArray.resize(1);
 		myPolarArray[0] = ctopolardeg(*pCmplx);
@@ -8332,7 +8334,7 @@ void LineCodesV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 	int		i = 0, 
 			j = 0, 
 			k = 0;
-	complex Ztemp = cmplx(0,0);
+	Ucomplex::complex Ztemp = cmplx(0,0);
 	double	Factor = 0.0;
 	int*	Pint = nullptr;
 	double* PDouble =nullptr;
@@ -8777,7 +8779,7 @@ void LoadShapeV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 					k = 0, 
 					LoopLimit = 0;
 	TPointerList*	pList = nullptr;
-	complex			Sample = cmplx(0,0);
+	Ucomplex::complex			Sample = cmplx(0,0);
 	bool			UseHour = false;
 	double*			PDouble = nullptr;
 
@@ -17344,7 +17346,7 @@ void TransformersV(int mode, uintptr_t* myPtr, int* myType, int* mySize)
 					iV = 0,
 					NumCurrents = 0,
 					k = 0;
-	vector<complex>	TempCurrentBuffer, 
+	vector<Ucomplex::complex>	TempCurrentBuffer, 
 					TempVoltageBuffer;
 	switch (mode)
 	{
@@ -19187,7 +19189,7 @@ int InitAndGetYparams(uintptr_t* hY, unsignedint* nBus, unsignedint* nNZ)
 
 /* Returns Pointers to column and row and matrix values */
 /* Call InitAndGetYparams first to factor the sparse matrix ... */
-void GetCompressedYMatrix(uintptr_t hY, unsignedint nBus, unsignedint nNz, int** ColPtr, int** RowIdx, complex** cVals)
+void GetCompressedYMatrix(uintptr_t hY, unsignedint nBus, unsignedint nNz, int** ColPtr, int** RowIdx, Ucomplex::complex** cVals)
 {
 	// Allocate space on the heap and put the values there
 	ReallocMem(YColumns, sizeof(int) * (nBus + 1));
@@ -19218,7 +19220,7 @@ int SystemYChanged(int mode, int arg)
 	return result;
 }
 
-int SolveSystem(complex** NodeV)
+int SolveSystem(Ucomplex::complex** NodeV)
 {
 	return ActiveCircuit[ActiveActor]->Solution->SolveSystem(*NodeV, ActiveActor);
 }
@@ -19269,12 +19271,12 @@ void ZeroInjCurr(void)
 		ActiveCircuit[ActiveActor]->Solution->ZeroInjCurr(ActiveActor);
 }
 
-void getVpointer(complex** VvectorPtr)
+void getVpointer(Ucomplex::complex** VvectorPtr)
 {
 	*VvectorPtr = ActiveCircuit[ActiveActor]->Solution->NodeV.data();
 }
 
-void getIpointer(complex** IvectorPtr)
+void getIpointer(Ucomplex::complex** IvectorPtr)
 {
 	*IvectorPtr = ActiveCircuit[ActiveActor]->Solution->Currents.data();
 }

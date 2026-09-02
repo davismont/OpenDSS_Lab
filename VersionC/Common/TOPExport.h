@@ -24,6 +24,7 @@
 
 namespace TOPExport
 {
+using Ucomplex::complex;
     //typedef int time_t;
 
 #pragma pack(push, 1)

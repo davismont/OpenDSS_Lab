@@ -12,6 +12,7 @@
 
 namespace Hashlist
 {
+using Ucomplex::complex;
 
 
 /*

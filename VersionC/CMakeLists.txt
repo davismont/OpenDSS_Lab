@@ -405,6 +405,7 @@ foreach(_tgt ${OPENDSSC_TARGETS})
 		target_compile_definitions(${_tgt} PRIVATE
 			_D2C_SYSFILE_H_LONG_IS_INT64
 			_COMPLEX_DEFINED
+			KLUSOLVE_COMPLEX=Ucomplex::complex
 		)
 	endif()
 

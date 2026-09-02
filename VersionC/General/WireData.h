@@ -14,6 +14,7 @@
 
 namespace WireData
 {
+using Ucomplex::complex;
 
 
 /*

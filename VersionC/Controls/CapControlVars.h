@@ -10,6 +10,7 @@
 
 namespace CapControlVars
 {
+using Ucomplex::complex;
 
 
 /*

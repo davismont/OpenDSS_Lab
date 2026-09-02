@@ -12,6 +12,7 @@
 
 namespace PriceShape
 {
+using Ucomplex::complex;
 
 
 

@@ -28,6 +28,7 @@
 
 namespace DSSPlot
 {
+using Ucomplex::complex;
 
     class TDSSPlot;
     class TGenPlotItem;

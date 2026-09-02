@@ -13,6 +13,7 @@
 
 namespace CNLineConstants
 {
+using Ucomplex::complex;
 
 
 /*

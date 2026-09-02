@@ -14,6 +14,7 @@
 
 namespace Sensor
 {
+using Ucomplex::complex;
 
 
 

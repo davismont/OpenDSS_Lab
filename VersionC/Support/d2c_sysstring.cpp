@@ -344,7 +344,7 @@ const char unicode_encoding4[] = "UCS-4LE";
 
 cint fpgetCerrno( )
 {
-  return *__errno_location();
+  return errno; // *__errno_location() is glibc's internal spelling of errno
 }
 
 

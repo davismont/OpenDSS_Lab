@@ -10,6 +10,7 @@
 
 namespace ControlClass
 {
+using Ucomplex::complex;
 
 
 /*

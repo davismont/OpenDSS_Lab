@@ -14,6 +14,7 @@
 
 namespace XYCurve
 {
+using Ucomplex::complex;
 
 
 

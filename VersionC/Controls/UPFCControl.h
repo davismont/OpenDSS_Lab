@@ -16,6 +16,7 @@
 
 namespace UPFCControl
 {
+using Ucomplex::complex;
 
 
 /*

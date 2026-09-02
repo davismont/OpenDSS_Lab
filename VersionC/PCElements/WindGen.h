@@ -30,6 +30,7 @@
 
 namespace WindGen
 {
+using Ucomplex::complex;
 
 
 /*

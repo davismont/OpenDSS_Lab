@@ -11,6 +11,7 @@
 
 namespace PVsystemUserModel
 {
+using Ucomplex::complex;
 
 
 

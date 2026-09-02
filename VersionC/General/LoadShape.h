@@ -14,6 +14,7 @@
 
 namespace LoadShape
 {
+using Ucomplex::complex;
 
 
 /*

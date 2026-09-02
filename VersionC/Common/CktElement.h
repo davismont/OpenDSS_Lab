@@ -32,6 +32,7 @@ using namespace std;
 
 namespace CktElement
 {
+using Ucomplex::complex;
 
     class TDSSCktElement : public TDSSObject {
         typedef TDSSObject inherited;

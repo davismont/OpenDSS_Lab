@@ -13,6 +13,7 @@
 
 namespace CNData
 {
+using Ucomplex::complex;
 
 
 /*

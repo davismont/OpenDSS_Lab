@@ -18,6 +18,26 @@
 #include <unistd.h> // execvp, fork
 #endif
 
+#if !defined(windows)
+#include <cstdio> // snprintf
+
+// strerror_l() is a glibc/POSIX-2008 interface that macOS does not provide.
+// strerror_r() is the thread-safe equivalent available everywhere; like
+// strerror_l(), the pointer it hands back here stays valid until this thread
+// asks for another message.
+static const char* StrErrorCurrentLocale( int errnum )
+{
+#if defined(__APPLE__)
+    static thread_local char buf[256];
+    if ( strerror_r( errnum, buf, sizeof( buf ) ) != 0 )
+        snprintf( buf, sizeof( buf ), "Unknown error %d", errnum );
+    return buf;
+#else
+    return strerror_l( errnum, uselocale( locale_t( 0 ) ) );
+#endif
+}
+#endif
+
 namespace Utilities
 {
 
@@ -195,7 +215,7 @@ namespace Utilities
 
         // Handle errors here:
         int the_errno = errno;
-        char *errno_message = strerror_l(the_errno, uselocale(locale_t(0)));
+        const char *errno_message = StrErrorCurrentLocale(the_errno);
         std::cerr << "fork_execvp error: execvp() returned with errno=" << the_errno << ": " << errno_message << "\n";
 
         // We must not allow any return to the caller.
@@ -298,7 +318,7 @@ namespace Utilities
         if (the_errno) 
         {
             // fork_execvp() returned an error.
-            char *errno_message = strerror_l(the_errno, uselocale(locale_t(0)));
+            const char *errno_message = StrErrorCurrentLocale(the_errno);
             std::stringstream error_string;
             error_string << "FireOffEditor Error: " << error_message << " returned with errno=" << the_errno << ": " << errno_message;
             DoSimpleMsg( error_string.str().c_str(), 704 );
@@ -369,7 +389,7 @@ namespace Utilities
       int the_errno = fork_execvp(argv[0], argv, &wstatus, &error_message);
       if (the_errno) {
         // fork_execvp() returned an error.
-        char *errno_message = strerror_l(the_errno, uselocale(locale_t(0)));
+        const char *errno_message = StrErrorCurrentLocale(the_errno);
         std::stringstream error_string;
         error_string << "DoDOSCmd Error: " << error_message << " returned with errno=" << the_errno << ": " << errno_message;
         DoSimpleMsg( error_string.str().c_str(), 704 );

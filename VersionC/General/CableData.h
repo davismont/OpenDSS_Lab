@@ -12,6 +12,7 @@
 
 namespace CableData
 {
+using Ucomplex::complex;
 
 
 /*

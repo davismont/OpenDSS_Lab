@@ -91,6 +91,7 @@ typedef void* klusparseset_t;
 
 namespace Solution
 {
+using Ucomplex::complex;
 
     class EControlProblem;
     class ESolveError;

@@ -8,6 +8,7 @@
 
 namespace MeterClass
 {
+using Ucomplex::complex;
 
 
 	/*

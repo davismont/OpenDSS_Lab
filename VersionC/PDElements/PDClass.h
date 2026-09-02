@@ -8,6 +8,7 @@
 
 namespace PDClass
 {
+using Ucomplex::complex;
 
 
 /*

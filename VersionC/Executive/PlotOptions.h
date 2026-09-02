@@ -18,6 +18,7 @@
 
 namespace PlotOptions
 {
+using Ucomplex::complex;
 
 
 /*

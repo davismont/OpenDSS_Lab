@@ -17,6 +17,7 @@
 
 namespace ShowOptions
 {
+using Ucomplex::complex;
 
 	/*
 	  ----------------------------------------------------------

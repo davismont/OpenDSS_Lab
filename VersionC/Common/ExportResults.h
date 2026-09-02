@@ -20,6 +20,7 @@
 
 namespace ExportResults
 {
+using Ucomplex::complex;
 
 
 	void ExportVoltages(String Filenm);

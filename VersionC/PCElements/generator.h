@@ -25,6 +25,7 @@
 
 namespace Generator
 {
+using Ucomplex::complex;
 
 
 /*

@@ -42,6 +42,7 @@
 
 namespace Feeder
 {
+using Ucomplex::complex;
 
 	//class TFeeder;
 	//class TFeederObj;

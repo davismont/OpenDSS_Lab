@@ -18,6 +18,7 @@
 
 namespace LineGeometry
 {
+using Ucomplex::complex;
 
 
 /*

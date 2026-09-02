@@ -20,6 +20,7 @@ using namespace std;
 
 namespace Genrou
 {
+using Ucomplex::complex;
 
 	/*
 	  ----------------------------------------------------------

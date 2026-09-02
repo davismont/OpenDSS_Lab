@@ -16,6 +16,7 @@
 
 namespace GenDispatcher
 {
+using Ucomplex::complex;
 
 
 /*

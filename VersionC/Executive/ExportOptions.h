@@ -18,6 +18,7 @@
 
 namespace ExportOptions
 {
+using Ucomplex::complex;
 
 
 	/*

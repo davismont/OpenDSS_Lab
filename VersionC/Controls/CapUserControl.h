@@ -13,6 +13,7 @@
 
 namespace CapUserControl
 {
+using Ucomplex::complex;
 
 
 

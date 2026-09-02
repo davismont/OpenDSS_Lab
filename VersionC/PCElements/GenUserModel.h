@@ -13,6 +13,7 @@
 
 namespace GenUserModel
 {
+using Ucomplex::complex;
 
 
 

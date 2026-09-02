@@ -8,6 +8,7 @@
 
 namespace RCDList
 {
+using Ucomplex::complex;
 
 
 class TRCDList : public TList

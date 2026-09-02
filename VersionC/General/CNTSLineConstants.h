@@ -14,6 +14,7 @@
 
 namespace CNTSLineConstants
 {
+using Ucomplex::complex;
 
 
 /*

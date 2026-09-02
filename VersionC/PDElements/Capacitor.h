@@ -19,6 +19,7 @@
 
 namespace Capacitor
 {
+using Ucomplex::complex;
 
 
 /*

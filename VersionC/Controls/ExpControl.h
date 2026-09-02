@@ -20,6 +20,7 @@ class TIEEE1547Controller;
 
 namespace ExpControl
 {
+using Ucomplex::complex;
 
 
 

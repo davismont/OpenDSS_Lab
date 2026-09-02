@@ -27,6 +27,7 @@
 
 namespace Bus
 {
+using Ucomplex::complex;
 
 
     class TDSSBus : public TNamedObject {

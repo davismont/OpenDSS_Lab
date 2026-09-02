@@ -19,6 +19,7 @@
 
 namespace TSData
 {
+using Ucomplex::complex;
 
 
 /*

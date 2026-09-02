@@ -11,6 +11,7 @@
 
 namespace OHLineConstants
 {
+using Ucomplex::complex;
 
 
 /*

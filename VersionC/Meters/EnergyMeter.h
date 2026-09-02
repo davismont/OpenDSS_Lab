@@ -26,6 +26,7 @@
 
 namespace EnergyMeter
 {
+using Ucomplex::complex;
 
 
 /*

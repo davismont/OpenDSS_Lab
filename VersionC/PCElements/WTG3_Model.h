@@ -40,6 +40,7 @@
 
 namespace WTG3_Model
 {
+using Ucomplex::complex;
     struct TWTG3_Model;
     typedef TWTG3_Model* pTWTG3_Model;
 

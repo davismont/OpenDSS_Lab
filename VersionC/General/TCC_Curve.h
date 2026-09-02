@@ -12,6 +12,7 @@
 
 namespace TCC_Curve
 {
+using Ucomplex::complex;
 
 
 /*

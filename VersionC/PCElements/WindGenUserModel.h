@@ -14,6 +14,7 @@
 
 namespace WindGenUserModel
 {
+using Ucomplex::complex;
 
 
 

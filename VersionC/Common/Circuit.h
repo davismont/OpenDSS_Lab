@@ -59,6 +59,7 @@
 
 namespace Circuit
 {
+using Ucomplex::complex;
 
     enum TReductionStrategy {
         rsDefault,

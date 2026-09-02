@@ -161,7 +161,7 @@ extern TSysLocale SysLocale;
 String GetEnvironmentVariable( const String& EnvVar );
 int GetEnvironmentVariableCount( );
 String GetEnvironmentString( int Index );
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 
   const PtrInt NilHandle = ((TLibHandle) 0 ); 
   TLibHandle SafeLoadLibrary( std::string Name );
@@ -179,7 +179,11 @@ String GetEnvironmentString( int Index );
   void* GetProcAddress( TLibHandle lib, std::wstring ProcName );
 
   // These are for easier crossplatform construction of DLL Names in dynloading libs.
+#if defined(__APPLE__)
+  const Char SharedSuffix[] = _T("dylib");
+#else
   const Char SharedSuffix[] = _T("so");
+#endif
   
   void Sleep( unsignedint milliseconds );
 #endif
@@ -617,7 +621,7 @@ struct TSearchRec {
   int Attr;
   TFileName Name;
   int ExcludeAttr; 
-  #ifdef unix
+  #if defined(unix) || defined(__APPLE__)
   void* FindHandle;
   mode_t Mode;
   AnsiString PathOnly; 

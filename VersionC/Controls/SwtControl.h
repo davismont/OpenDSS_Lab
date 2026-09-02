@@ -17,6 +17,7 @@
 
 namespace SwtControl
 {
+using Ucomplex::complex;
 
 
 /*

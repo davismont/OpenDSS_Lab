@@ -21,6 +21,7 @@
 
 namespace VCCS
 {
+using Ucomplex::complex;
 
 
 /*

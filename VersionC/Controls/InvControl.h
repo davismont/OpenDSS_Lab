@@ -28,6 +28,7 @@ class TIEEE1547Controller;
 
 namespace InvControl
 {
+using Ucomplex::complex;
 
 
 /*

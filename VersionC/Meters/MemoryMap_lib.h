@@ -10,6 +10,7 @@
 
 namespace MemoryMap_lib
 {
+using Ucomplex::complex;
 
 /***************************Memory mapped files Library**************************
 * This library was added to OpenDSS to handle the different functions related  *

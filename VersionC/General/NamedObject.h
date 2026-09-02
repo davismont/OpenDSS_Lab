@@ -8,6 +8,7 @@
 
 namespace NamedObject
 {
+using Ucomplex::complex;
 
 
 /*

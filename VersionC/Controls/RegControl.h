@@ -17,6 +17,7 @@
 
 namespace RegControl
 {
+using Ucomplex::complex;
 
 
 /*

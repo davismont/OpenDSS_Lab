@@ -8,6 +8,7 @@ using namespace std;
 
 namespace IntegrationMethods
 {
+using Ucomplex::complex;
 	//  This file contains a list of all integration methods used
 
 	/*template <class ModelType>

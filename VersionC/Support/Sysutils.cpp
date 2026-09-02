@@ -103,6 +103,7 @@ using namespace System;
 #include <utime.h>
 #include <langinfo.h>
 #include <locale.h>
+#include <climits>	// CHAR_MAX, for localeconv() fields
 #include <dlfcn.h>
 #include <iostream>
 #include <cerrno>
@@ -7796,6 +7797,11 @@ String ExpandUNCFileName( const String& Filename )
 *****************************************************************************/
 
 
+#if !defined(O_LARGEFILE)
+// Linux-only flag; macOS/BSD already use a 64-bit off_t, so it is a no-op there.
+#define O_LARGEFILE 0
+#endif
+
 cint fpopen( const char* Path, cint Flags, mode_t Mode )
 {
   cint r = open(Path, Flags | O_LARGEFILE, Mode);
@@ -8424,7 +8430,7 @@ int FindFirst( const String& Path, int Attr, TSearchRec& Rslt )
   Rslt.Attr = 0;
   Rslt.Name.clear();
   Rslt.ExcludeAttr = 0; 
-  #ifdef unix
+  #if defined(unix) || defined(__APPLE__)
   Rslt.FindHandle = 0;
   Rslt.Mode = 0;
   Rslt.PathOnly.clear(); 
@@ -8713,6 +8719,11 @@ bool RemoveDir( const String& Dir )
 
 
 
+// glibc exposes these nl_langinfo() items through internal __LC_* bases.  macOS
+// (BSD libc) already defines the date/time items in <langinfo.h> and has no
+// nl_langinfo() equivalent for the monetary/numeric ones -- those come from
+// localeconv() instead -- so this block is glibc-only.
+#if !defined(__APPLE__)
 const int ABDAY_1 = ( __LC_TIME << 16 );
 const int DAY_1 = ( ABDAY_1 ) + 7;
 const int ABMON_1 = ( ABDAY_1 ) + 14;
@@ -8742,6 +8753,7 @@ const int __N_SEP_BY_SPACE = ( __INT_CURR_SYMBOL ) + 12;
 const int __P_SIGN_POSN = ( __INT_CURR_SYMBOL ) + 13;
 const int __N_SIGN_POSN = ( __INT_CURR_SYMBOL ) + 14;
 const int _NL_MONETARY_CRNCYSTR = ( __INT_CURR_SYMBOL ) + 15;
+#endif // !__APPLE__
 
 
 String GetLocaleStr( cint item )
@@ -8960,7 +8972,11 @@ void GetFormatSettings( )
 
   int i = 0;
   unsigned char prec = '\0', sep = '\0', signp = '\0';
+  #if defined(__APPLE__)
+  setlocale( LC_ALL, "" );
+#else
   setlocale( __LC_ALL, "" );
+#endif
   for ( i = 1; i <= 12; i++)
   {
     ShortMonthNames[i - 1] = GetLocaleStr( ABMON_1 + i - 1 );
@@ -8986,6 +9002,38 @@ void GetFormatSettings( )
   LongTimeFormat = GetLocaleStr( T_FMT_AMPM );
   LongTimeFormat = TransformFormatStr( LongTimeFormat );   
    //Currency stuff
+#if defined(__APPLE__)
+  // macOS has no nl_langinfo() items for the monetary/numeric locale data;
+  // localeconv() carries exactly the same fields.  Unlike glibc's
+  // _NL_MONETARY_CRNCYSTR, currency_symbol has no leading placement byte, so
+  // nothing is stripped from it here.  Fields a locale leaves unspecified are
+  // reported as CHAR_MAX and keep the existing defaults.
+  {
+    const struct lconv* lc = localeconv( );
+    if ( ( lc->currency_symbol != nullptr ) && ( lc->currency_symbol[0] != '\0' ) )
+#ifdef _WIDESTRING
+      CurrencyString = str2wstr( lc->currency_symbol );
+#else
+      CurrencyString = lc->currency_symbol;
+#endif
+    if ( lc->frac_digits != CHAR_MAX )
+      CurrencyDecimals = lc->frac_digits;
+    prec = ((unsigned char) lc->p_cs_precedes );
+    sep = ((unsigned char) lc->p_sep_by_space );
+    if ( ( prec <= 1 ) && ( sep <= 1 ) )
+      CurrencyFormat = ((unsigned char) ! ((bool) prec ) ) + ( sep << 1 );
+    prec = ((unsigned char) lc->n_cs_precedes );
+    sep = ((unsigned char) lc->n_sep_by_space );
+    signp = ((unsigned char) lc->n_sign_posn );
+    if ( ( clocale__2.Contains(signp ) ) && ( clocale__3.Contains(prec ) ) && ( clocale__4.Contains(sep ) ) )
+      NegCurrFormat = NegFormatsTable[signp][ prec][ sep];
+    //number stuff
+    if ( ( lc->thousands_sep != nullptr ) && ( lc->thousands_sep[0] != '\0' ) )
+      ThousandSeparator = ((Char) lc->thousands_sep[0] );
+    if ( ( lc->decimal_point != nullptr ) && ( lc->decimal_point[0] != '\0' ) )
+      DecimalSeparator = ((Char) lc->decimal_point[0] );
+  }
+#else
   CurrencyString = GetLocaleStr( _NL_MONETARY_CRNCYSTR );
   CurrencyString = CurrencyString.substr( 2 - 1, CurrencyString.length( ) );
   CurrencyDecimals = StrToIntDef( GetLocaleStr( __FRAC_DIGITS ), CurrencyDecimals );
@@ -9001,6 +9049,7 @@ void GetFormatSettings( )
   //number stuff
   ThousandSeparator = GetLocaleChar( __THOUSANDS_SEP );
   DecimalSeparator = GetLocaleChar( RADIXCHAR );
+#endif
 }
 
 // clocale end

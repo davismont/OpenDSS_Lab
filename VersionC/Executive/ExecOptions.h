@@ -21,6 +21,7 @@
 
 namespace ExecOptions
 {
+using Ucomplex::complex;
 
 	/*
 	  ----------------------------------------------------------

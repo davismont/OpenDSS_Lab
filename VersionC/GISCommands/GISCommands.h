@@ -30,6 +30,7 @@
 
 namespace GISCommands
 {
+using Ucomplex::complex;
 
 
 

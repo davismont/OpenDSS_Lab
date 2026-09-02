@@ -19,6 +19,7 @@
 
 namespace XfmrCode
 {
+using Ucomplex::complex;
 
 
 /*

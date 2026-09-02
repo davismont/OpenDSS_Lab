@@ -50,6 +50,7 @@
 
 namespace Utilities
 {
+using Ucomplex::complex;
 	enum LineStyle {
 		psSolid,
 		psDash,

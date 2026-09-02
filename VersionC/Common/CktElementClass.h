@@ -20,6 +20,7 @@
 
 namespace CktElementClass
 {
+using Ucomplex::complex;
 
 
     class TCktElementClass : public TDSSClass {

@@ -198,7 +198,7 @@ void __stdcall GetActiveElementCurrentsCallBack( int& NumCurrents, pComplexArray
 /*====================================================================================================================*/
 
 
-void __stdcall GetActiveElementLossesCallBack( complex& TotalLosses, complex& LoadLosses, complex& NoLoadLosses, int ActorID )
+void __stdcall GetActiveElementLossesCallBack( Ucomplex::complex& TotalLosses, Ucomplex::complex& LoadLosses, Ucomplex::complex& NoLoadLosses, int ActorID )
 {
   TotalLosses = CZero;
   LoadLosses = CZero;
@@ -217,7 +217,7 @@ void __stdcall GetActiveElementLossesCallBack( complex& TotalLosses, complex& Lo
 /*====================================================================================================================*/
 
 
-void __stdcall GetActiveElementPowerCallBack( int Terminal, complex& TotalPower )
+void __stdcall GetActiveElementPowerCallBack( int Terminal, Ucomplex::complex& TotalPower )
 {
   TotalPower = CZero;
   if (( ActiveCircuit[ActiveActor]->get_FActiveCktElement() != NULL ) )

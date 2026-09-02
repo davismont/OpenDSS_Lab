@@ -15,6 +15,7 @@
 
 namespace Equivalent
 {
+using Ucomplex::complex;
 
 
  /*

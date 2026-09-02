@@ -12,6 +12,7 @@
 
 namespace MeterElement
 {
+using Ucomplex::complex;
 
 
  /*

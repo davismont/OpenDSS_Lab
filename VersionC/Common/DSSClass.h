@@ -29,6 +29,7 @@ using namespace std;
 
 namespace DSSClass
 { 
+using Ucomplex::complex;
 
    // Collection of all DSS Classes
 

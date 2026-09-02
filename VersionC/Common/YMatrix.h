@@ -34,6 +34,7 @@ typedef void* klusparseset_t;
 
 namespace YMatrix
 {
+using Ucomplex::complex;
 
 	//class EEsolv32Problem;
 

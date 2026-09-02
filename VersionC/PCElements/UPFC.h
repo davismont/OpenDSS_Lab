@@ -23,6 +23,7 @@
 
 namespace UPFC
 {
+using Ucomplex::complex;
 
 
 /*

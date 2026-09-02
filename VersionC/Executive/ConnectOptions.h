@@ -9,6 +9,7 @@
 
 namespace ConnectOptions
 {
+using Ucomplex::complex;
 
 
 /*

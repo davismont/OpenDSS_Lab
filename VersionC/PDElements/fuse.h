@@ -20,6 +20,7 @@
 
 namespace fuse
 {
+using Ucomplex::complex;
 
 
 /*

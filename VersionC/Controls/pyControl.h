@@ -16,6 +16,7 @@
 
 namespace pyControl
 {
+using Ucomplex::complex;
 
 
 /*

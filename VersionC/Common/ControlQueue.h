@@ -22,6 +22,7 @@
 
 namespace ControlQueue
 {
+using Ucomplex::complex;
 
 
 	struct TActionRecord;

@@ -18,6 +18,7 @@ using namespace std;
 
 namespace Tgov // Create a namespace so similar functions from others namespaces will not be crosswired
 {
+using Ucomplex::complex;
 	/*
 	  ----------------------------------------------------------
 	  Copyright (c) 2008-2022, Electric Power Research Institute, Inc.

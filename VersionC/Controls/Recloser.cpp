@@ -815,11 +815,11 @@ void TRecloserObj::DoPendingAction(int Code, int ProxyHdl, int ActorID)
 							LockedOut[PhIdx - 1] = true;
 							if (SinglePhLockout) 
 							{
-								if (ShowEventLog) AppendToEventLog(String("Recloser.") + this->get_Name(), Format("Phase %d opened on %s (1ph trip) & locked out (1ph lockout)", PhIdx, RecloserTarget[PhIdx - 1]), ActorID);
+								if (ShowEventLog) AppendToEventLog(String("Recloser.") + this->get_Name(), Format("Phase %d opened on %s (1ph trip) & locked out (1ph lockout)", PhIdx, RecloserTarget[PhIdx - 1].c_str()), ActorID);
 							}
 							else
 							{
-								if (ShowEventLog) AppendToEventLog(String("Recloser.") + this->get_Name(), Format("Phase %d opened on %s (1ph trip) & locked out (3ph lockout)", PhIdx, RecloserTarget[PhIdx - 1]), ActorID); // 3-Phase Lockout
+								if (ShowEventLog) AppendToEventLog(String("Recloser.") + this->get_Name(), Format("Phase %d opened on %s (1ph trip) & locked out (3ph lockout)", PhIdx, RecloserTarget[PhIdx - 1].c_str()), ActorID); // 3-Phase Lockout
 								// Lockout other phases
 								int stop = 0;
 								for(stop = get_FControlledElement()->Get_NPhases(), i = 1; i <= stop; i++)
@@ -837,7 +837,7 @@ void TRecloserObj::DoPendingAction(int Code, int ProxyHdl, int ActorID)
 						}
 						else
 						{
-							if (ShowEventLog) AppendToEventLog(String("Recloser.") + this->get_Name(), Format("Phase %d opened on %s (1ph trip)", PhIdx, RecloserTarget[PhIdx - 1]), ActorID);
+							if (ShowEventLog) AppendToEventLog(String("Recloser.") + this->get_Name(), Format("Phase %d opened on %s (1ph trip)", PhIdx, RecloserTarget[PhIdx - 1].c_str()), ActorID);
 						}
 						ArmedForOpen[PhIdx - 1] = false;
 					}
@@ -864,11 +864,11 @@ void TRecloserObj::DoPendingAction(int Code, int ProxyHdl, int ActorID)
 								if (OperationCount[PhIdx - 1] > NumReclose)
 								{
 									LockedOut[PhIdx - 1] = true;
-									if (ShowEventLog) AppendToEventLog(String("Recloser.") + this->get_Name(), Format("Phase %d opened on %s (3ph trip) & locked out (3ph lockout)", i, RecloserTarget[PhIdx - 1]), ActorID);
+									if (ShowEventLog) AppendToEventLog(String("Recloser.") + this->get_Name(), Format("Phase %d opened on %s (3ph trip) & locked out (3ph lockout)", i, RecloserTarget[PhIdx - 1].c_str()), ActorID);
 								}
 								else
 								{
-									if (ShowEventLog) AppendToEventLog(String("Recloser.") + this->get_Name(), Format("Phase %d opened on %s (3ph trip)", i, RecloserTarget[PhIdx - 1]), ActorID);
+									if (ShowEventLog) AppendToEventLog(String("Recloser.") + this->get_Name(), Format("Phase %d opened on %s (3ph trip)", i, RecloserTarget[PhIdx - 1].c_str()), ActorID);
 								}
 							}
 							break; /*nada*/
@@ -1192,7 +1192,7 @@ void TRecloserObj::sample(int ActorID)
 		{
             Groundtime = TDGround * GroundCurve->GetTCCTime(cmag / GroundCurveMultiplier);
 			if (Groundtime > 0.0 and DebugTrace)
-                AppendToEventLog(String("Debug Sample: Recloser.") + this->get_Name(), Format("Gnd %s Curve Trip: Mag=%.3g, Time=%.3g", GroundCurveType, cmag / GroundCurveMultiplier, Groundtime), ActorID);
+                AppendToEventLog(String("Debug Sample: Recloser.") + this->get_Name(), Format("Gnd %s Curve Trip: Mag=%.3g, Time=%.3g", GroundCurveType.c_str(), cmag / GroundCurveMultiplier, Groundtime), ActorID);
 		}
     }
     if (Groundtime > 0.0) GroundTarget = true;
@@ -1242,7 +1242,7 @@ void TRecloserObj::sample(int ActorID)
 					{
 						PhaseTime = TimeTest;
 						if (DebugTrace)
-							AppendToEventLog(String("Debug Sample: Recloser.") + this->get_Name(), Format("Ph %s (1-Phase) Trip: Phase=%d, Mag=%.3g, Time=%.3g", PhaseCurveType, i, cmag / PhaseCurveMultiplier, PhaseTime), ActorID);
+							AppendToEventLog(String("Debug Sample: Recloser.") + this->get_Name(), Format("Ph %s (1-Phase) Trip: Phase=%d, Mag=%.3g, Time=%.3g", PhaseCurveType.c_str(), i, cmag / PhaseCurveMultiplier, PhaseTime), ActorID);
 					}
 				}
 			}
@@ -1268,7 +1268,7 @@ void TRecloserObj::sample(int ActorID)
 							if (abs(Groundtime - 0.01) < EPSILON) 
 								RecloserTarget[i - 1] = "Gnd Instantaneous";
 							else 
-								RecloserTarget[i - 1] = Format("Ground %s", GroundCurveType);
+								RecloserTarget[i - 1] = Format("Ground %s", GroundCurveType.c_str());
 						}
 						if (TripTime == PhaseTime)
 						{
@@ -1277,7 +1277,7 @@ void TRecloserObj::sample(int ActorID)
 							if (abs(PhaseTime - 0.01) < EPSILON) 
 								RecloserTarget[i - 1] = RecloserTarget[i - 1] + "Ph Instantaneous";
 							else 
-								RecloserTarget[i - 1] = RecloserTarget[i - 1] + Format("Ph %s", PhaseCurveType);
+								RecloserTarget[i - 1] = RecloserTarget[i - 1] + Format("Ph %s", PhaseCurveType.c_str());
 						}
 
 						ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + TripTime + MechanicalDelay, CTRL_OPEN, i, this, ActorID);
@@ -1377,7 +1377,7 @@ void TRecloserObj::sample(int ActorID)
 						if (abs(Groundtime - 0.01) < EPSILON) 
 							RecloserTarget[IdxMultiPh - 1] = "Gnd Instantaneous";
 						else 
-							RecloserTarget[IdxMultiPh - 1] = Format("Ground %s", GroundCurveType);
+							RecloserTarget[IdxMultiPh - 1] = Format("Ground %s", GroundCurveType.c_str());
 					}
 					if (TripTime == PhaseTime)
 					{
@@ -1386,7 +1386,7 @@ void TRecloserObj::sample(int ActorID)
 						if (abs(PhaseTime - 0.01) < EPSILON) 
 							RecloserTarget[IdxMultiPh - 1] = RecloserTarget[IdxMultiPh - 1] + "Ph Instantaneous";
 						else 
-							RecloserTarget[IdxMultiPh - 1] = RecloserTarget[IdxMultiPh - 1] + Format("Ph %s", PhaseCurveType);
+							RecloserTarget[IdxMultiPh - 1] = RecloserTarget[IdxMultiPh - 1] + Format("Ph %s", PhaseCurveType.c_str());
 					}
 
 					ActiveCircuit[ActorID]->ControlQueue.Push(ActiveCircuit[ActorID]->Solution->DynaVars.intHour, ActiveCircuit[ActorID]->Solution->DynaVars.T + TripTime + MechanicalDelay, CTRL_OPEN, 0, this, ActorID);

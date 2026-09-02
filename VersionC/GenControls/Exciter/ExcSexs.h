@@ -20,6 +20,7 @@ using namespace std;
 
 namespace ExcSexs
 {
+using Ucomplex::complex;
 
 	/*
 	  ----------------------------------------------------------

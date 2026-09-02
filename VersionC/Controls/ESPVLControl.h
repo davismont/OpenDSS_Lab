@@ -18,6 +18,7 @@
 
 namespace ESPVLControl
 {
+using Ucomplex::complex;
 
 
 /*

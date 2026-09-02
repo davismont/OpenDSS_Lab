@@ -3081,7 +3081,7 @@ void ExportCDPSM(String Filenm, String Substation, String SubGeographicRegion, S
     bool bval;
     double v1, v2;
     int i1, i2;
-    complex Zs, Zm;
+    Ucomplex::complex Zs, Zm;
     double Rs, Rm, Xs, Xm, R1, R0, X1, X0;
     TNamedObject *pName1, *pName2;
     TNamedObject *pIsland, *pSwing;  // island and ref node

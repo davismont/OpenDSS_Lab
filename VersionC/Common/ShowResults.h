@@ -3,6 +3,7 @@
 
 #include "System.h"
 #include "Sysutils.h"
+#include "Ucomplex.h"
 
 using namespace std;
 
@@ -17,6 +18,7 @@ using namespace std;
 */
 namespace ShowResults
 {
+using Ucomplex::complex;
 
 
 	//#include <System.hpp>

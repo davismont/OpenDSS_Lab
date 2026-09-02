@@ -11,6 +11,7 @@
 
 namespace DSSObject
 {
+using Ucomplex::complex;
 
 
 /*

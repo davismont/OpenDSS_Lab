@@ -13,6 +13,7 @@
 
 namespace CableConstants
 {
+using Ucomplex::complex;
 
 
 /*

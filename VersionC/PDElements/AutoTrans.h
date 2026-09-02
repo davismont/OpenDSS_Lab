@@ -18,6 +18,7 @@
 
 namespace AutoTrans
 {
+using Ucomplex::complex;
 
 
 /*

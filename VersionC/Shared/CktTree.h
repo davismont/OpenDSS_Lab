@@ -16,6 +16,7 @@ typedef vector<TList> TAdjArray;
 
 namespace CktTree
 {
+using Ucomplex::complex;
 
 
 /*

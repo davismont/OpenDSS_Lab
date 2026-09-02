@@ -16,6 +16,7 @@
 
 namespace GICLine
 {
+using Ucomplex::complex;
 
 
 

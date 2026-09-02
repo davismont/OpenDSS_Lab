@@ -21,6 +21,7 @@
 
 namespace CapControl
 {
+using Ucomplex::complex;
 
 
 /*

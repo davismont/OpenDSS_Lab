@@ -101,6 +101,7 @@ using namespace Executive;
 
 namespace DSSGlobals
 {
+using Ucomplex::complex;
 
 //    class TProgressActor;
     typedef unsigned int unsignedint;

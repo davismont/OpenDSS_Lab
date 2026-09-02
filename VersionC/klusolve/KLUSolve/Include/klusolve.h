@@ -11,6 +11,14 @@
 typedef struct _complex {double x, y;} complex;
 #endif
 
+/* Consumers that predefine _COMPLEX_DEFINED bring their own complex type.  They
+   can name it through KLUSOLVE_COMPLEX so that the prototypes below do not have
+   to rely on an unqualified "complex" -- which is ambiguous in C++ whenever
+   std::complex is also visible (libc++ declares it from <iosfwd>). */
+#ifndef KLUSOLVE_COMPLEX
+#define KLUSOLVE_COMPLEX complex
+#endif
+
 #include <stdint.h>
 
 #ifndef KLUSOLVE_IMPORTS
@@ -50,17 +58,17 @@ KLUSOLVE_DLL unsigned int KLUSOLVE_CONVENTION FactorSparseMatrix (klusparseset_t
   no provision for voltage sources
 */
 // return 1 if successful, 2 if singular, 0 if other error
-KLUSOLVE_DLL unsigned int KLUSOLVE_CONVENTION SolveSparseSet (klusparseset_t hSparse, complex *_acxX, complex *_acxB);
+KLUSOLVE_DLL unsigned int KLUSOLVE_CONVENTION SolveSparseSet (klusparseset_t hSparse, KLUSOLVE_COMPLEX *_acxX, KLUSOLVE_COMPLEX *_acxB);
 
 // return 1 if successful, 0 if not
 KLUSOLVE_DLL unsigned int KLUSOLVE_CONVENTION DeleteSparseSet (klusparseset_t hSparse);
 
 /* i and j are 1-based for these */
 // return 1 if successful, 0 if not
-KLUSOLVE_DLL unsigned int KLUSOLVE_CONVENTION AddMatrixElement (klusparseset_t hSparse, unsigned int i, unsigned int j, complex *pcxVal);
-KLUSOLVE_DLL unsigned int KLUSOLVE_CONVENTION GetMatrixElement (klusparseset_t hSparse, unsigned int i, unsigned int j, complex *pcxVal);
+KLUSOLVE_DLL unsigned int KLUSOLVE_CONVENTION AddMatrixElement (klusparseset_t hSparse, unsigned int i, unsigned int j, KLUSOLVE_COMPLEX *pcxVal);
+KLUSOLVE_DLL unsigned int KLUSOLVE_CONVENTION GetMatrixElement (klusparseset_t hSparse, unsigned int i, unsigned int j, KLUSOLVE_COMPLEX *pcxVal);
 // Sets a specific cell within the YBus matrix 
-KLUSOLVE_DLL unsigned int KLUSOLVE_CONVENTION SetMatrixElement(klusparseset_t hSparse, unsigned int i, unsigned int j, complex* pcxVal);
+KLUSOLVE_DLL unsigned int KLUSOLVE_CONVENTION SetMatrixElement(klusparseset_t hSparse, unsigned int i, unsigned int j, KLUSOLVE_COMPLEX* pcxVal);
 
 // new functions
 KLUSOLVE_DLL unsigned int KLUSOLVE_CONVENTION GetSize (klusparseset_t hSparse, unsigned int *pResult);
@@ -73,12 +81,12 @@ KLUSOLVE_DLL unsigned int KLUSOLVE_CONVENTION GetFlops (klusparseset_t hSparse, 
 KLUSOLVE_DLL unsigned int KLUSOLVE_CONVENTION GetSingularCol (klusparseset_t hSparse, unsigned int *pResult);
 
 KLUSOLVE_DLL unsigned int KLUSOLVE_CONVENTION AddPrimitiveMatrix (klusparseset_t hSparse, unsigned int nOrder,
-							unsigned int *pNodes, complex *pcY);
+							unsigned int *pNodes, KLUSOLVE_COMPLEX *pcY);
 KLUSOLVE_DLL unsigned int KLUSOLVE_CONVENTION GetCompressedMatrix (klusparseset_t hSparse, unsigned int nColP, 
 							 unsigned int nNZ, unsigned int *pColP, 
-							 unsigned int *pRowIdx, complex *pcY);
+							 unsigned int *pRowIdx, KLUSOLVE_COMPLEX *pcY);
 KLUSOLVE_DLL unsigned int KLUSOLVE_CONVENTION GetTripletMatrix (klusparseset_t hSparse, unsigned int nNZ,
-						  unsigned int *pRows, unsigned int *pCols, complex *pcY);
+						  unsigned int *pRows, unsigned int *pCols, KLUSOLVE_COMPLEX *pcY);
 KLUSOLVE_DLL unsigned int KLUSOLVE_CONVENTION FindIslands (klusparseset_t hSparse, unsigned int nOrder, unsigned int *pNodes);
 
 // iAction = 0 to close, 1 to rewrite, 2 to append

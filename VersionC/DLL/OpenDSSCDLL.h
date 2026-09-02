@@ -517,7 +517,7 @@ extern "C" {
 	//**************************************************************************************************
 
 	DSS_DLL int InitAndGetYparams(uintptr_t* hY, unsignedint* nBus, unsignedint* nNZ);
-	DSS_DLL void GetCompressedYMatrix(uintptr_t hY, unsignedint nBus, unsignedint nNz, int** ColPtr, int** RowIdx, complex** cVals);
+	DSS_DLL void GetCompressedYMatrix(uintptr_t hY, unsignedint nBus, unsignedint nNz, int** ColPtr, int** RowIdx, Ucomplex::complex** cVals);
 	DSS_DLL int SystemYChanged(int mode, int arg);
 	DSS_DLL int UseAuxCurrents(int mode, int arg);
 	DSS_DLL void AddInAuxCurrents(int SType);
@@ -525,9 +525,9 @@ extern "C" {
 	DSS_DLL void GetPCInjCurr(void);
 	DSS_DLL void GetSourceInjCurrents(void);
 	DSS_DLL void ZeroInjCurr(void);
-	DSS_DLL int SolveSystem(complex** NodeV);
-	DSS_DLL void getIpointer(complex** IvectorPtr);
-	DSS_DLL void getVpointer(complex** VvectorPtr);
+	DSS_DLL int SolveSystem(Ucomplex::complex** NodeV);
+	DSS_DLL void getIpointer(Ucomplex::complex** IvectorPtr);
+	DSS_DLL void getVpointer(Ucomplex::complex** VvectorPtr);
 
 	/// DSSDisposeString must be called to dispose the memory used by any string returned by the API,
 	/// except for string arrays from the `*V()` variant functions, which use a global buffer.

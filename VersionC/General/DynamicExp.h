@@ -26,6 +26,7 @@ Last update by Davis Montenegro 04/13/2022
 
 namespace DynamicExp
 {
+using Ucomplex::complex;
 
 class TDynamicExp;
 class TDynamicExpObj;

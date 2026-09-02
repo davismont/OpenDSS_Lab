@@ -16,6 +16,7 @@
 
 namespace GICsource
 {
+using Ucomplex::complex;
 
 
 /*

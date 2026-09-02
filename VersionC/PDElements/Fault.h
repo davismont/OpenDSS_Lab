@@ -18,6 +18,7 @@
 
 namespace Fault
 {
+using Ucomplex::complex;
 
 
 /*

@@ -13,6 +13,7 @@
 
 namespace LineCode
 {
+using Ucomplex::complex;
 
 
 /*

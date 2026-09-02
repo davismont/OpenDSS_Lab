@@ -12,6 +12,7 @@
 
 namespace ControlElem
 {
+using Ucomplex::complex;
 
 
 /*

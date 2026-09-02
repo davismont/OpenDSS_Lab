@@ -12,6 +12,7 @@
 
 namespace LineSpacing
 {
+using Ucomplex::complex;
 
 
 /*

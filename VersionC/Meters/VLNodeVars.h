@@ -8,6 +8,7 @@
 
 namespace VLNodeVars
 {
+using Ucomplex::complex;
 
 
 

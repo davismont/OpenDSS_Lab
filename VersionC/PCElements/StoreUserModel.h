@@ -16,6 +16,7 @@
 
 namespace StoreUserModel
 {
+using Ucomplex::complex;
 
 
 

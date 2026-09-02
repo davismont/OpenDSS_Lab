@@ -8,6 +8,7 @@
 
 namespace GeneratorVars
 {
+using Ucomplex::complex;
 
 
 
