@@ -410,6 +410,7 @@ Copyright (C) 2008-2022  EPRI. All Rights Reserved.;LegalTrademarks=;OriginalFil
         <DCCReference Include="DReactors.pas"/>
         <DCCReference Include="..\General\CNTSLineConstants.pas"/>
         <DCCReference Include="..\Controls\UPFCControl.pas"/>
+        <DCCReference Include="DOpenDSS.pas"/>
         <None Include="..\DLL\OpenDSSengine.dpr"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>

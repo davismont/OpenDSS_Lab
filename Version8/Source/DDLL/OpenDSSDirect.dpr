@@ -237,7 +237,8 @@ uses
   DWindGens in 'DWindGens.pas',
   DReactors in 'DReactors.pas',
   CNTSLineConstants in '..\General\CNTSLineConstants.pas',
-  UPFCControl in '..\Controls\UPFCControl.pas';
+  UPFCControl in '..\Controls\UPFCControl.pas',
+  DOpenDSS in 'DOpenDSS.pas';
 
 //**************************end of the functions*************************************
 exports
@@ -282,7 +283,8 @@ exports
    SystemYChanged,BuildYMatrixD,UseAuxCurrents,AddInAuxCurrents,getIpointer,
    getVpointer,SolveSystem,ParallelI,ParallelV,LineCodesI,LineCodesF,LineCodesS,
    LineCodesV, GICSourcesI,GICSourcesF,GICSourcesS,GICSourcesV,ReduceCktI,ReduceCktF,ReduceCktS,
-   StoragesI,StoragesF,StoragesS,StoragesV,WindGensI,WindGensF,WindGensS,WindGensV,ReactorsI,ReactorsF,ReactorsS,ReactorsV;
+   StoragesI,StoragesF,StoragesS,StoragesV,WindGensI,WindGensF,WindGensS,WindGensV,ReactorsI,ReactorsF,ReactorsS,ReactorsV,
+   OpenDSS,API_docs;
 
    {$R *.RES}
 
