@@ -13,5 +13,6 @@
     <Transaction>2024/11/26 09:05:04.000.606,C:\OpenDSS\Version8\Source\Controls\UPFCControl.pas=C:\OpenDSS\Version8\Source\Controls\pyControl.pas</Transaction>
     <Transaction>2024/12/06 16:06:53.000.243,=C:\OpenDSS\Version8\Source\Common\PipeServerInstance.pas</Transaction>
     <Transaction>2024/12/06 16:07:15.000.113,=C:\OpenDSS\Version8\Source\Controls\UPFCControl.pas</Transaction>
+    <Transaction>2026/09/02 17:44:23.000.268,=C:\OpenDSS_Lab\Version8\Source\DDLL\DOpenDSS.pas</Transaction>
   </Transactions>
 </BorlandProject>
